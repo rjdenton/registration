@@ -1,0 +1,69 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+}
+
+.register-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 50px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.form-section, .recommendation-section {
+  width: 48%; /* Make both columns larger */
+  background-color: #ffffff;
+  padding: 50px; /* Increase padding for better spacing */
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  margin-bottom: 30px;
+  font-size: 2rem; /* Increase heading size */
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 25px; /* Add more spacing between form elements */
+}
+
+label {
+  display: block;
+  margin-bottom: 10px; /* Add more space below the label */
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+select {
+  width: 100%;
+  padding: 15px; /* Increase padding for larger input fields */
+  font-size: 1.1rem; /* Increase font size for the dropdown */
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  padding: 15px 30px; /* Larger button size */
+  font-size: 1.1rem; /* Larger text on the button */
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.recommendation-section p {
+  font-size: 1.2rem; /* Larger text size for recommendations */
+  color: #666;
+  line-height: 1.6; /* Improve text spacing */
+}
+

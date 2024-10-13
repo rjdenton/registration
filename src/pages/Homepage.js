@@ -1,23 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import '../styles/homepage.css';  // Import the CSS
 
-const HomePage = () => {
+function Homepage() {
   return (
-    <div className="container mt-5">
-      <h1>Welcome to the Registration System</h1>
-      <p>
-        This is the home of the course registration system. You can register, view available courses, manage waitlists, and much more!
-      </p>
-      <div className="mt-4">
-        <Link to="/register" className="btn btn-primary me-2">
-          Register
-        </Link>
-        <Link to="/login" className="btn btn-secondary">
-          Login
-        </Link>
-      </div>
+    <div className="container">
+      <h1>Welcome to the Homepage</h1>
+      <nav>
+        <ul>
+          <li>
+            <Link to="/Register">Register</Link>
+          </li>
+        </ul>
+      </nav>
+      <footer>
+        <p>© 2024 Your Website. All Rights Reserved.</p>
+      </footer>
     </div>
   );
-};
+}
 
-export default HomePage;
+export default Homepage;
+
+
