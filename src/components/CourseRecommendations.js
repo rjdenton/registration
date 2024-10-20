@@ -1,45 +1,58 @@
-/*
-Course Recommendation Outline
-Objective: To recommend courses to students based on their major, past courses, and upcoming semester
-Tables:
-Students
-    -id (PK)
-    -name
-    -email
-    -major_id   (FK)
+import React, { useEffect, useState } from 'react';
 
-Majors
-    -id (PK)
-    -name
-    -department_id (FK)
+const CourseRecommendations = ({ studentId, majorName }) => {
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-Departments
-    -id (PK)
-    -name
+    useEffect(() => {
+        const fetchRecommendations = async () => {
+            try {
+                const response = await fetch(`/api/recommendations?student_id=${studentId}&name=${majorName}`);
 
-Courses
-    -id (PK)
-    -name
-    -credits
-    -description
-    -major_id (FK)
-    -semester_available (Fall, Spring, Summer)
-    -prerequisites
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
 
-Enrollment
-    -id (PK)
-    -student_id (FK)
-    -course_id (FK)
-    -semester (Fall, Spring, Summer)
-    -grade (A, B, C, D, F)
+                const data = await response.json();
+                if (data && Array.isArray(data)) {
+                    setCourses(data);
+                } else {
+                    throw new Error('Invalid data format received');
+                }
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-Algorithm:
-    Input: Student ID to fetch student's major and past courses
-    Output: List of recommended courses based on prerequisites taken and if classes are available in the upcoming semester
-    Steps:
-        1. Fetch student's major and past courses
-        2. Query database for courses in student's major
-        3. Filter courses based on prerequisites taken by student
-        4. Filter courses based on upcoming semester
-        5. Return list of recommended courses
-*/
+        fetchRecommendations();
+    }, [studentId, majorName]);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
+
+    return (
+        <div>
+            <h2>Recommended Courses</h2>
+            {courses.length > 0 ? (
+                <ul>
+                    {courses.map(course => (
+                        <li key={course.course_id}>{course.name} (Credits: {course.credits})</li>
+                    ))}
+                </ul>
+            ) : (
+                <div>No recommendations available</div>
+            )}
+        </div>
+    );
+};
+
+export default CourseRecommendations;
+

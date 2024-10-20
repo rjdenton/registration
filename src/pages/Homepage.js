@@ -1,15 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/homepage.css';  // Import the CSS
+import './Login.js';
 
 function Homepage() {
   return (
     <div className="container">
-      <h1>Welcome to the Homepage</h1>
+      <h1>Registration</h1>
       <nav>
         <ul>
           <li>
-            <Link to="/Register">Register</Link>
+            <Link to="/Login">Login</Link>
           </li>
         </ul>
       </nav>

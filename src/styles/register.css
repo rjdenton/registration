@@ -16,45 +16,48 @@ body {
 .form-section, .recommendation-section {
   width: 48%; /* Make both columns larger */
   background-color: #ffffff;
-  padding: 50px; /* Increase padding for better spacing */
+  padding: 30px; /* Adjust padding for a more uniform look */
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px; /* Space between sections */
 }
 
 h2 {
-  margin-bottom: 30px;
-  font-size: 2rem; /* Increase heading size */
+  margin-bottom: 20px; /* Adjusted for better spacing */
+  font-size: 2rem; /* Increased heading size */
   color: #333;
 }
 
 .form-group {
-  margin-bottom: 25px; /* Add more spacing between form elements */
+  margin-bottom: 20px; /* Add spacing between form elements */
 }
 
 label {
   display: block;
-  margin-bottom: 10px; /* Add more space below the label */
+  margin-bottom: 5px; /* Adjusted space below the label */
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
-select {
+select, input[type="text"], input[type="number"] {
   width: 100%;
-  padding: 15px; /* Increase padding for larger input fields */
-  font-size: 1.1rem; /* Increase font size for the dropdown */
-  border-radius: 10px;
+  padding: 12px; /* Adjust padding for larger input fields */
+  font-size: 1rem; /* Adjust font size for consistency */
+  border-radius: 8px;
   border: 1px solid #ccc;
+  margin-top: 5px; /* Space above inputs */
 }
 
 button {
   background-color: #007bff;
   color: white;
-  padding: 15px 30px; /* Larger button size */
-  font-size: 1.1rem; /* Larger text on the button */
+  padding: 12px 25px; /* Adjusted button size */
+  font-size: 1rem; /* Adjusted button text size */
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin-top: 10px; /* Space above button */
 }
 
 button:hover {
@@ -62,8 +65,32 @@ button:hover {
 }
 
 .recommendation-section p {
-  font-size: 1.2rem; /* Larger text size for recommendations */
+  font-size: 1rem; /* Adjusted text size for recommendations */
   color: #666;
   line-height: 1.6; /* Improve text spacing */
+}
+
+.recommendation-section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px; /* Space above table */
+}
+
+.recommendation-section th,
+.recommendation-section td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.recommendation-section th {
+  background-color: #f2f2f2;
+  font-weight: bold; /* Bold headers for emphasis */
+}
+
+/* Add overall styling for recommendation section */
+.recommendation-section {
+  border: 1px solid #ddd; /* Border around recommendation section */
+  border-radius: 15px; /* Match border radius */
 }
 
