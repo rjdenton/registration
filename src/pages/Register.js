@@ -28,7 +28,7 @@ function Register() {
     }
 
     const encodedMajor = encodeURIComponent(major);  // Encode the major name
-    const apiUrl = `https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/recommendations?major_name=${encodedMajor}&student_id=${user.student_id}`;
+    const apiUrl = `http://127.0.0.1:5000/api/recommendations?major_name=${encodedMajor}&student_id=${user.student_id}`;
     console.log('Request URL:', apiUrl);  // Log the full URL
 
     try {
