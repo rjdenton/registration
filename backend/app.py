@@ -118,6 +118,42 @@ def get_available_seats():
         cursor.close()
         close_connection(connection)
 
+from flask import request, jsonify
+import mysql.connector
+
+# Assume you already have your MySQL connection set up
+
+@app.route('/api/register_course', methods=['POST'])
+def register_course():
+    course_id = request.json.get('course_id')
+
+    if not course_id:
+        return jsonify({'error': 'Course ID not provided'}), 400
+
+    try:
+        # Decrease the seats_available by 1 for the course if seats are available
+        cursor = mysql.connection.cursor()
+
+        # Lock the row for update to prevent race conditions
+        cursor.execute("""
+            UPDATE courses
+            SET seats_available = seats_available - 1
+            WHERE course_id = %s AND seats_available > 0
+        """, (course_id,))
+
+        # Commit the transaction to apply changes
+        mysql.connection.commit()
+
+        # Check if any rows were affected (i.e., seats were available)
+        if cursor.rowcount > 0:
+            return jsonify({'message': 'Course registered successfully'}), 200
+        else:
+            return jsonify({'error': 'No available seats or invalid course'}), 400
+    except mysql.connector.Error as e:
+        print(f"Database error: {e}")
+        return jsonify({'error': 'Database error occurred'}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 

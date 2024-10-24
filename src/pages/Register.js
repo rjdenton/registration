@@ -52,28 +52,56 @@ function Register() {
   };
 
   // Handle registering selected courses
-  const handleRegister = () => {
-    const selected = courses.filter((course) =>
-      selectedCourses.includes(course.course_id)
-    );
+  const handleRegister = async () => {
+  const selected = courses.filter((course) =>
+    selectedCourses.includes(course.course_id)
+  );
 
-    const updatedRegisteredCourses = selected.map((course) => ({
-      ...course,
-      status: course.seats_available > 0 ? 'Registered' : 'Waitlist'
-    }));
+  const updatedRegisteredCourses = selected.map((course) => ({
+    ...course,
+    status: course.seats_available > 0 ? 'Registered' : 'Waitlist'
+  }));
 
-    // Move selected courses to registered list and remove from available list
-    setRegisteredCourses((prevRegistered) => [
-      ...prevRegistered,
-      ...updatedRegisteredCourses,
-    ]);
-    setCourses((prevCourses) =>
-      prevCourses.filter((course) => !selectedCourses.includes(course.course_id))
-    );
+  // For each selected course, make a backend call to decrease seats
+  for (let course of selected) {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/register_course', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          course_id: course.course_id,
+        }),
+      });
 
-    // Clear selected courses
-    setSelectedCourses([]);
-  };
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Error registering course:', data.error);
+        alert(`Could not register for ${course.name}: ${data.error}`);
+        return;
+      } else {
+        console.log(`Registered for ${course.name}`);
+      }
+    } catch (error) {
+      console.error('Error registering course:', error);
+    }
+  }
+
+  // Move selected courses to registered list and remove from available list
+  setRegisteredCourses((prevRegistered) => [
+    ...prevRegistered,
+    ...updatedRegisteredCourses,
+  ]);
+  setCourses((prevCourses) =>
+    prevCourses.filter((course) => !selectedCourses.includes(course.course_id))
+  );
+
+  // Clear selected courses
+  setSelectedCourses([]);
+};
+
 
   // Handle showing the "Remove" button when a user wants to unregister a course
   const handleUnregisterCheckboxChange = (courseId) => {
