@@ -7,16 +7,17 @@ body {
 
 .register-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column; /* Stack the sections vertically */
+  align-items: center; /* Center the entire container */
   padding: 50px;
-  max-width: 1400px;
+  max-width: 2400px;
   margin: 0 auto;
 }
 
-.form-section, .recommendation-section {
-  width: 48%; /* Make both columns larger */
+.form-section, .recommendation-section, .registered-section {
+  width: 100%; /* Full width for each section */
   background-color: #ffffff;
-  padding: 30px; /* Adjust padding for a more uniform look */
+  padding: 30px; /* Adjust padding for uniform look */
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px; /* Space between sections */
@@ -88,9 +89,48 @@ button:hover {
   font-weight: bold; /* Bold headers for emphasis */
 }
 
-/* Add overall styling for recommendation section */
-.recommendation-section {
-  border: 1px solid #ddd; /* Border around recommendation section */
-  border-radius: 15px; /* Match border radius */
+.registered-section {
+  background-color: #f9f9f9; /* Slightly different background for the registered section */
+  border: 1px solid #ddd;
+  padding: 30px;
+  border-radius: 15px;
+  width: 100%;
 }
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul li {
+  background-color: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-section, .recommendation-section, .registered-section {
+  margin: 20px 0;
+}
+
 

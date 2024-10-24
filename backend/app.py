@@ -1,3 +1,4 @@
+import mysql
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from mysql.connector import Error
@@ -87,6 +88,35 @@ def recommendations():
     # Return the recommended courses as a JSON response
     return jsonify(recommended_courses)
 
+
+@app.route('/api/available_seats', methods=['GET'])
+def get_available_seats():
+    course_id = request.args.get('course_id')
+
+    connection = create_connection()
+    if connection is None:
+        return jsonify({"error": "Failed to connect to the database"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        # Query the available seats for the course
+        query = "SELECT course_id, seats_available FROM courses WHERE course_id = %s"
+        cursor.execute(query, (course_id,))
+        result = cursor.fetchone()
+
+        if result:
+            return jsonify(result)
+        else:
+            return jsonify({"error": "Course not found"}), 404
+
+    except mysql.connector.Error as e:
+        print(f"Error executing query: {e}")
+        return jsonify({"error": "Failed to execute query"}), 500
+
+    finally:
+        cursor.close()
+        close_connection(connection)
 
 if __name__ == '__main__':
     app.run(debug=True)
