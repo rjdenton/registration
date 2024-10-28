@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../components/UserContext'; // Import the useUser hook
 import '../styles/register.css'; // Import the CSS for styling
 
@@ -14,6 +14,27 @@ function Register() {
   const handleMajorChange = (e) => {
     setMajor(e.target.value);
   };
+
+// Fetch registered courses on component mount
+useEffect(() => {
+  const fetchRegisteredCourses = async () => {
+    console.log('Fetching registered courses for student ID:', user?.student_id);
+    if (user?.student_id) {
+      const response = await fetch(`http://127.0.0.1:5000/api/registered_courses?student_id=${user.student_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Registered courses data:', data);
+        setRegisteredCourses(data);
+      } else {
+        console.error('Error fetching registered courses:', response.statusText);
+      }
+    }
+  };
+
+  fetchRegisteredCourses();
+}, [user]);
+
+
 
   const handleSemesterChange = (e) => {
     setSemester(e.target.value);
@@ -52,56 +73,56 @@ function Register() {
   };
 
   // Handle registering selected courses
-  const handleRegister = async () => {
-  const selected = courses.filter((course) =>
-    selectedCourses.includes(course.course_id)
-  );
+ const handleRegister = async () => {
+    const selected = courses.filter((course) =>
+        selectedCourses.includes(course.course_id)
+    );
 
-  const updatedRegisteredCourses = selected.map((course) => ({
-    ...course,
-    status: course.seats_available > 0 ? 'Registered' : 'Waitlist'
-  }));
+    const updatedRegisteredCourses = selected.map((course) => ({
+        ...course,
+        status: course.seats_available > 0 ? 'Registered' : 'Waitlist'
+    }));
 
-  // For each selected course, make a backend call to decrease seats
-  for (let course of selected) {
-    try {
-      const response = await fetch('http://127.0.0.1:5000/api/register_course', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          course_id: course.course_id,
-        }),
-      });
+    // For each selected course, make a backend call to decrease seats
+    for (let course of selected) {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/register_course', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: course.course_id,
+                    student_id: user.student_id,  // Pass the student_id
+                }),
+            });
 
-      const data = await response.json();
+            const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Error registering course:', data.error);
-        alert(`Could not register for ${course.name}: ${data.error}`);
-        return;
-      } else {
-        console.log(`Registered for ${course.name}`);
-      }
-    } catch (error) {
-      console.error('Error registering course:', error);
+            if (!response.ok) {
+                console.error('Error registering course:', data.error);
+                alert(`Could not register for ${course.name}: ${data.error}`);
+                return;
+            } else {
+                console.log(`Registered for ${course.name}`);
+            }
+        } catch (error) {
+            console.error('Error registering course:', error);
+        }
     }
-  }
 
-  // Move selected courses to registered list and remove from available list
-  setRegisteredCourses((prevRegistered) => [
-    ...prevRegistered,
-    ...updatedRegisteredCourses,
-  ]);
-  setCourses((prevCourses) =>
-    prevCourses.filter((course) => !selectedCourses.includes(course.course_id))
-  );
+    // Move selected courses to registered list and remove from available list
+    setRegisteredCourses((prevRegistered) => [
+        ...prevRegistered,
+        ...updatedRegisteredCourses,
+    ]);
+    setCourses((prevCourses) =>
+        prevCourses.filter((course) => !selectedCourses.includes(course.course_id))
+    );
 
-  // Clear selected courses
-  setSelectedCourses([]);
+    // Clear selected courses
+    setSelectedCourses([]);
 };
-
 
   // Handle showing the "Remove" button when a user wants to unregister a course
   const handleUnregisterCheckboxChange = (courseId) => {
@@ -113,23 +134,51 @@ function Register() {
   };
 
   // Handle unregistering a course when the "Remove" button is clicked
-  const handleUnregister = () => {
-    const remainingCourses = registeredCourses.filter(
-      (course) => !unregisteringCourses.includes(course.course_id)
-    );
-    const unregisteredCourses = registeredCourses.filter(
-      (course) => unregisteringCourses.includes(course.course_id)
-    );
+  const handleUnregister = async () => {
+  // Separate remaining and unregistered courses
+  const remainingCourses = registeredCourses.filter(
+    (course) => !unregisteringCourses.includes(course.course_id)
+  );
+  const unregisteredCourses = registeredCourses.filter(
+    (course) => unregisteringCourses.includes(course.course_id)
+  );
 
-    // Add unregistered courses back to the available courses list
-    setCourses((prevCourses) => [...prevCourses, ...unregisteredCourses]);
+  // For each unregistered course, increase seats in the database
+  for (let course of unregisteredCourses) {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/unregister_course', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          course_id: course.course_id,
+          student_id: user.student_id,
+        }),
+      });
 
-    // Update registered courses list
-    setRegisteredCourses(remainingCourses);
+      const data = await response.json();
 
-    // Clear the unregistering courses list
-    setUnregisteringCourses([]);
-  };
+      if (!response.ok) {
+        console.error(`Error unregistering course ${course.name}:`, data.error);
+        alert(`Could not unregister ${course.name}: ${data.error}`);
+        return;
+      } else {
+        console.log(`Unregistered ${course.name} and increased seats.`);
+      }
+    } catch (error) {
+      console.error(`Error unregistering course ${course.name}:`, error);
+    }
+  }
+
+  // Update state to remove unregistered courses from registered list and add them to available courses
+  setCourses((prevCourses) => [...prevCourses, ...unregisteredCourses]);
+  setRegisteredCourses(remainingCourses);
+
+  // Clear the unregistering courses list
+  setUnregisteringCourses([]);
+};
+
 
   return (
     <div className="register-container">
@@ -201,46 +250,45 @@ function Register() {
       </div>
 
       <div className="registered-section">
-        <h2>Registered Courses</h2>
-        {registeredCourses.length > 0 ? (
-          <>
-            <table>
-              <thead>
-                <tr>
-                  <th>Select</th> {/* Add column for unregister checkboxes */}
-                  <th>Course Name</th>
-                  <th>Credits</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {registeredCourses.map((course) => (
-                  <tr key={course.course_id}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={unregisteringCourses.includes(course.course_id)}
-                        onChange={() => handleUnregisterCheckboxChange(course.course_id)}
-                      />
-                    </td>
-                    <td>{course.name}</td>
-                    <td>{course.credits}</td>
-                    <td>{course.status}</td>
+          <h2>Registered Courses</h2>
+          {registeredCourses.length > 0 ? (
+            <>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Select</th>
+                    <th>Course Name</th>
+                    <th>Credits</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Remove button below the table */}
-            {unregisteringCourses.length > 0 && (
-              <button className="remove-btn" onClick={handleUnregister}>
-                Remove Selected Courses
-              </button>
-            )}
-          </>
-        ) : (
-          <p>No courses registered yet.</p>
-        )}
-      </div>
+                </thead>
+                <tbody>
+                  {registeredCourses.map((course) => (
+                    <tr key={course.course_id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={unregisteringCourses.includes(course.course_id)}
+                          onChange={() => handleUnregisterCheckboxChange(course.course_id)}
+                        />
+                      </td>
+                      <td>{course.name}</td>
+                      <td>{course.credits}</td>
+                      <td>{course.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {unregisteringCourses.length > 0 && (
+                <button className="remove-btn" onClick={handleUnregister}>
+                  Remove Selected Courses
+                </button>
+              )}
+            </>
+          ) : (
+            <p>No courses registered yet.</p>
+          )}
+        </div>
     </div>
   );
 }

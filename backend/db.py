@@ -88,7 +88,7 @@ def get_recommendations(student_id, major_id):
 
         # Fetch completed courses for the student
         query_completed_courses = """
-            SELECT course_id FROM enrollment WHERE student_id = %s
+            SELECT course_id FROM completed WHERE student_id = %s
         """
         cursor.execute(query_completed_courses, (student_id,))
         completed_courses = {row['course_id'] for row in cursor.fetchall()}

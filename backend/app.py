@@ -125,14 +125,20 @@ import mysql.connector
 
 @app.route('/api/register_course', methods=['POST'])
 def register_course():
-    course_id = request.json.get('course_id')
+    data = request.json
+    course_id = data.get('course_id')
+    student_id = data.get('student_id')  # Get student_id from the request
 
-    if not course_id:
-        return jsonify({'error': 'Course ID not provided'}), 400
+    if not course_id or not student_id:
+        return jsonify({'error': 'Course ID and Student ID are required'}), 400
 
     try:
         # Decrease the seats_available by 1 for the course if seats are available
-        cursor = mysql.connection.cursor()
+        connection = create_connection()
+        if connection is None:
+            return jsonify({"error": "Failed to connect to the database"}), 500
+
+        cursor = connection.cursor()
 
         # Lock the row for update to prevent race conditions
         cursor.execute("""
@@ -141,17 +147,118 @@ def register_course():
             WHERE course_id = %s AND seats_available > 0
         """, (course_id,))
 
-        # Commit the transaction to apply changes
-        mysql.connection.commit()
-
         # Check if any rows were affected (i.e., seats were available)
         if cursor.rowcount > 0:
+            # Insert into the registrations table
+            cursor.execute("""
+                INSERT INTO registrations (student_id, course_id)
+                VALUES (%s, %s)
+            """, (student_id, course_id))
+
+            # Commit the transaction to apply changes
+            connection.commit()
             return jsonify({'message': 'Course registered successfully'}), 200
         else:
             return jsonify({'error': 'No available seats or invalid course'}), 400
+
     except mysql.connector.Error as e:
         print(f"Database error: {e}")
         return jsonify({'error': 'Database error occurred'}), 500
+
+    finally:
+        close_connection(connection)
+
+
+@app.route('/api/registered_courses', methods=['GET'])
+def get_registered_courses():
+    student_id = request.args.get('student_id')
+
+    if not student_id:
+        return jsonify({"error": "Student ID is required"}), 400
+
+    try:
+        connection = create_connection()
+        if connection is None:
+            return jsonify({"error": "Failed to connect to the database"}), 500
+
+        cursor = connection.cursor(dictionary=True)
+
+        # Query to fetch registered courses
+        query_reg = """
+        SELECT c.course_id, c.name, c.credits, r.reg_id
+        FROM registrations r
+        JOIN courses c ON r.course_id = c.course_id
+        WHERE r.student_id = %s
+        """
+        cursor.execute(query_reg, (student_id,))
+        registered_courses = cursor.fetchall()
+
+        # Query to fetch waitlisted courses
+        query_waitlist = """
+        SELECT c.course_id, c.name, c.credits, w.wait_id
+        FROM waitlist w
+        JOIN courses c ON w.course_id = c.course_id
+        WHERE w.student_id = %s
+        """
+        cursor.execute(query_waitlist, (student_id,))
+        waitlisted_courses = cursor.fetchall()
+
+        # Combine both results with a status
+        for course in registered_courses:
+            course['status'] = 'Registered'
+
+        for course in waitlisted_courses:
+            course['status'] = 'Waitlist'
+
+        # Combine both lists
+        all_courses = registered_courses + waitlisted_courses
+
+        return jsonify(all_courses)
+
+    except Error as e:
+        print(f"Error querying the database: {e}")
+        return jsonify({"error": "Error fetching registered courses!"}), 500
+
+    finally:
+        close_connection(connection)
+
+
+@app.route('/api/unregister_course', methods=['POST'])
+def unregister_course():
+    data = request.get_json()
+    course_id = data.get('course_id')
+    student_id = data.get('student_id')
+
+    if not course_id or not student_id:
+        return jsonify({"error": "Course ID and Student ID are required!"}), 400
+
+    connection = create_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed!"}), 500
+
+    try:
+        cursor = connection.cursor()
+
+        # Update seats to increase by 1 in the courses table
+        update_query = "UPDATE courses SET seats_available = seats_available + 1 WHERE course_id = %s"
+        cursor.execute(update_query, (course_id,))
+
+        # Remove the entry from the registrations table for this student and course
+        delete_query = "DELETE FROM registrations WHERE course_id = %s AND student_id = %s"
+        cursor.execute(delete_query, (course_id, student_id))
+
+        # Commit changes to the database
+        connection.commit()
+
+        return jsonify({"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
+
+    except Error as e:
+        print(f"Error updating seats or deleting registration: {e}")
+        return jsonify({"error": "Error updating seats or deleting registration!"}), 500
+
+    finally:
+        close_connection(connection)
+
 
 
 if __name__ == '__main__':
