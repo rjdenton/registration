@@ -1,2 +1,1 @@
-web: npm install && npm run build && python backend/app.py
-
+web: npm install --prefix frontend && npm run build --prefix frontend && python backend/app.py

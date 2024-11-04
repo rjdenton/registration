@@ -11,10 +11,10 @@ CORS(app)
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and os.path.exists("build/" + path):
-        return send_from_directory('build', path)
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
     else:
-        return send_from_directory('build', 'index.html')
+        return send_from_directory(app.static_folder, 'index.html')
 
 @app.after_request
 def add_cors_headers(response):
