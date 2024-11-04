@@ -1,2 +1,2 @@
-web: npm run build && python app.py
+web: npm run build && python backend/app.py
 
