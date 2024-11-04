@@ -10,6 +10,12 @@ CORS(app)
 
 @app.route('/api/login', methods=['OPTIONS','POST'])
 def login():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
@@ -32,6 +38,12 @@ def login():
 
 @app.route('/api/courses', methods=['OPTIONS','GET'])
 def get_courses():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     major_id = request.args.get('major_id')  # Get major_id from query parameters
     student_id = request.args.get('student_id')  # Get student_id from query parameters
 
@@ -64,6 +76,12 @@ def get_courses():
 
 @app.route('/api/recommendations', methods=['OPTIONS','GET'])
 def recommendations():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     major_name = request.args.get('major_name')  # Get the value of major_name
     student_id = request.args.get('student_id')  # Get the value of student_id
 
@@ -92,6 +110,12 @@ def recommendations():
 
 @app.route('/api/available_seats', methods=['OPTIONS','GET'])
 def get_available_seats():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     course_id = request.args.get('course_id')
 
     connection = create_connection()
@@ -126,6 +150,12 @@ import mysql.connector
 
 @app.route('/api/register_course', methods=['OPTIONS','POST'])
 def register_course():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     data = request.json
     course_id = data.get('course_id')
     student_id = data.get('student_id')  # Get student_id from the request
@@ -172,6 +202,12 @@ def register_course():
 
 @app.route('/api/registered_courses', methods=['OPTIONS','GET'])
 def get_registered_courses():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     student_id = request.args.get('student_id')
 
     if not student_id:
@@ -221,6 +257,12 @@ def get_registered_courses():
 
 @app.route('/api/unregister_course', methods=['OPTIONS','POST'])
 def unregister_course():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     data = request.get_json()
     course_id = data.get('course_id')
     student_id = data.get('student_id')
@@ -276,6 +318,12 @@ def unregister_course():
 
 @app.route('/api/waitlist_course', methods=['OPTIONS','POST'])
 def waitlist_course():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     data = request.get_json()
     course_id = data.get('course_id')
     student_id = data.get('student_id')
@@ -321,6 +369,12 @@ def waitlist_course():
 
 @app.route('/api/completed_courses', methods=['OPTIONS','GET'])
 def get_completed_courses():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     student_id = request.args.get('student_id')
 
     if not student_id:
@@ -361,6 +415,12 @@ def get_completed_courses():
 
 @app.route('/api/remove_waitlist_course', methods=['OPTIONS','POST'])
 def remove_waitlist_course():
+    if request.method == 'OPTIONS':
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+
     data = request.get_json()
     course_id = data.get('course_id')
     student_id = data.get('student_id')
