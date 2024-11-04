@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCallback } from 'react';
 
 function useRegistration(user) {
   const [activeTab, setActiveTab] = useState('current'); // Track active tab
@@ -24,21 +25,23 @@ function useRegistration(user) {
   };
 
   // Fetch registered courses
-  const fetchRegisteredCourses = async () => {
-    if (user?.student_id) {
-      try {
-        const response = await fetch(`http://127.0.0.1:5000/api/registered_courses?student_id=${user.student_id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setRegisteredCourses(data);
-        } else {
-          console.error('Error fetching registered courses:', response.statusText);
+    const fetchCurrentRegistrations = useCallback(async () => {
+      if (user?.student_id) {
+        try {
+          const response = await fetch(`http://127.0.0.1:5000/api/registered_courses?student_id=${user.student_id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setRegisteredCourses(data.registered_courses);
+            setWaitlistCourses(data.waitlisted_courses);
+          } else {
+            console.error('Error fetching current registrations:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error during fetchCurrentRegistrations:', error);
         }
-      } catch (error) {
-        console.error('Error:', error);
       }
-    }
-  };
+    }, [user]);
+
 
   // Fetch currently registered courses
     const fetchCurrentRegistrations = async () => {

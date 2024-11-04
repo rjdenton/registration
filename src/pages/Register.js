@@ -36,7 +36,7 @@ function Register() {
   // Use useEffect in the component to handle side effects.
   useEffect(() => {
     fetchCurrentRegistrations();
-  }, [user]);
+  }, [user, fetchCurrentRegistrations]);
 
   return (
     <div className="register-container">

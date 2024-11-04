@@ -5,7 +5,8 @@ from mysql.connector import Error
 from db import verify_login, create_connection, close_connection, get_recommendations, get_major_id_by_name
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/"}})
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
