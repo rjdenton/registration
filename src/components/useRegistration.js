@@ -42,32 +42,6 @@ function useRegistration(user) {
       }
     }, [user]);
 
-
-  // Fetch currently registered courses
-    const fetchCurrentRegistrations = async () => {
-  if (user?.student_id) {
-    try {
-      console.log("Fetching current registrations for student:", user.student_id);
-
-      const response = await fetch(`http://127.0.0.1:5000/api/registered_courses?student_id=${user.student_id}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Fetched registered and waitlisted courses data:", data);
-
-        setRegisteredCourses(data.registered_courses);
-        setWaitlistCourses(data.waitlisted_courses);
-
-        console.log("Updated registeredCourses state:", data.registered_courses);
-        console.log("Updated waitlistCourses state:", data.waitlisted_courses);
-      } else {
-        console.error('Error fetching current registrations:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error during fetchCurrentRegistrations:', error);
-    }
-  }
-};
-
 const fetchCompletedCourses = async () => {
   if (user?.student_id) {
     try {
