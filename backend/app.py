@@ -5,10 +5,10 @@ from mysql.connector import Error
 from db import verify_login, create_connection, close_connection, get_recommendations, get_major_id_by_name
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/"}})
+CORS(app)
 
 
-@app.route('/api/login', methods=['POST'])
+@app.route('/api/login', methods=['OPTIONS','POST'])
 def login():
     data = request.get_json()
     email = data.get('email')
@@ -30,7 +30,7 @@ def login():
     else:
         return jsonify({"message": "Invalid email or password!"}), 401
 
-@app.route('/api/courses', methods=['GET'])
+@app.route('/api/courses', methods=['OPTIONS','GET'])
 def get_courses():
     major_id = request.args.get('major_id')  # Get major_id from query parameters
     student_id = request.args.get('student_id')  # Get student_id from query parameters
@@ -62,7 +62,7 @@ def get_courses():
     finally:
         close_connection(connection)
 
-@app.route('/api/recommendations', methods=['GET'])
+@app.route('/api/recommendations', methods=['OPTIONS','GET'])
 def recommendations():
     major_name = request.args.get('major_name')  # Get the value of major_name
     student_id = request.args.get('student_id')  # Get the value of student_id
@@ -90,7 +90,7 @@ def recommendations():
     return jsonify(recommended_courses)
 
 
-@app.route('/api/available_seats', methods=['GET'])
+@app.route('/api/available_seats', methods=['OPTIONS','GET'])
 def get_available_seats():
     course_id = request.args.get('course_id')
 
@@ -124,7 +124,7 @@ import mysql.connector
 
 # Assume you already have your MySQL connection set up
 
-@app.route('/api/register_course', methods=['POST'])
+@app.route('/api/register_course', methods=['OPTIONS','POST'])
 def register_course():
     data = request.json
     course_id = data.get('course_id')
@@ -170,7 +170,7 @@ def register_course():
         close_connection(connection)
 
 
-@app.route('/api/registered_courses', methods=['GET'])
+@app.route('/api/registered_courses', methods=['OPTIONS','GET'])
 def get_registered_courses():
     student_id = request.args.get('student_id')
 
@@ -219,7 +219,7 @@ def get_registered_courses():
 
 
 
-@app.route('/api/unregister_course', methods=['POST'])
+@app.route('/api/unregister_course', methods=['OPTIONS','POST'])
 def unregister_course():
     data = request.get_json()
     course_id = data.get('course_id')
@@ -274,7 +274,7 @@ def unregister_course():
     finally:
         close_connection(connection)
 
-@app.route('/api/waitlist_course', methods=['POST'])
+@app.route('/api/waitlist_course', methods=['OPTIONS','POST'])
 def waitlist_course():
     data = request.get_json()
     course_id = data.get('course_id')
@@ -319,7 +319,7 @@ def waitlist_course():
         close_connection(connection)
 
 
-@app.route('/api/completed_courses', methods=['GET'])
+@app.route('/api/completed_courses', methods=['OPTIONS','GET'])
 def get_completed_courses():
     student_id = request.args.get('student_id')
 
@@ -359,7 +359,7 @@ def get_completed_courses():
     finally:
         close_connection(connection)
 
-@app.route('/api/remove_waitlist_course', methods=['POST'])
+@app.route('/api/remove_waitlist_course', methods=['OPTIONS','POST'])
 def remove_waitlist_course():
     data = request.get_json()
     course_id = data.get('course_id')
