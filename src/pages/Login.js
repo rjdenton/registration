@@ -11,7 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useUser();  // Access the login function from UserContext
 
-  cconst handleLogin = async (e) => {
+  const handleLogin = async (e) => {
   e.preventDefault();
   try {
     const response = await axios.post('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/login', {
