@@ -1,6 +1,6 @@
 import mysql
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from mysql.connector import Error
 from db import verify_login, create_connection, close_connection, get_recommendations, get_major_id_by_name
