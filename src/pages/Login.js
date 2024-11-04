@@ -11,27 +11,29 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useUser();  // Access the login function from UserContext
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post('/api/login', {
-        email,
-        password,
-      });
-      setMessage(response.data.message);
+  cconst handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await axios.post('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/login', {
+      email,
+      password,
+    });
+    setMessage(response.data.message);
 
-      // On successful login, store user data and navigate to the Register page
-      const userData = response.data.user;  // Assuming user data is returned from the server
-      login(userData);
+    // On successful login, store user data and navigate to the Register page
+    if (response.data.user) {
+      login(response.data.user);
       navigate('/Register');
-    } catch (error) {
-      if (error.response) {
-        setMessage(error.response.data.message);
-      } else {
-        setMessage("Network Error");
-      }
     }
-  };
+  } catch (error) {
+    if (error.response) {
+      setMessage(error.response.data.message);
+    } else {
+      setMessage("Network Error");
+    }
+  }
+};
+
 
   return (
     <div className="login-container">
