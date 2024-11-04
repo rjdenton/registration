@@ -203,17 +203,11 @@ def get_registered_courses():
         cursor.execute(query_waitlist, (student_id,))
         waitlisted_courses = cursor.fetchall()
 
-        # Combine both results with a status
-        for course in registered_courses:
-            course['status'] = 'Registered'
-
-        for course in waitlisted_courses:
-            course['status'] = 'Waitlist'
-
-        # Combine both lists
-        all_courses = registered_courses + waitlisted_courses
-
-        return jsonify(all_courses)
+        # Return both registered and waitlisted courses separately
+        return jsonify({
+            "registered_courses": registered_courses,
+            "waitlisted_courses": waitlisted_courses
+        })
 
     except Error as e:
         print(f"Error querying the database: {e}")
@@ -223,8 +217,64 @@ def get_registered_courses():
         close_connection(connection)
 
 
+
 @app.route('/api/unregister_course', methods=['POST'])
 def unregister_course():
+    data = request.get_json()
+    course_id = data.get('course_id')
+    student_id = data.get('student_id')
+
+    # Ensure course_id and student_id are present
+    if not course_id or not student_id:
+        print("Error: Course ID or Student ID is missing.")
+        return jsonify({"error": "Course ID and Student ID are required!"}), 400
+
+    # Establish connection
+    connection = create_connection()
+    if connection is None:
+        print("Error: Database connection failed.")
+        return jsonify({"error": "Database connection failed!"}), 500
+
+    try:
+        cursor = connection.cursor()
+
+        # Log the input values for debugging
+        print(f"Attempting to unregister course {course_id} for student {student_id}.")
+
+        # Increment available seats for the course
+        update_query = "UPDATE courses SET seats_available = seats_available + 1 WHERE course_id = %s"
+        cursor.execute(update_query, (course_id,))
+        if cursor.rowcount == 0:
+            print(f"Error: Could not update seats for course {course_id}. It might not exist.")
+            return jsonify({"error": "Failed to increment available seats."}), 400
+
+        # Log to confirm the seat update was successful
+        print(f"Seats incremented successfully for course {course_id}.")
+
+        # Delete the registration entry
+        delete_query = "DELETE FROM registrations WHERE course_id = %s AND student_id = %s"
+        cursor.execute(delete_query, (course_id, student_id))
+
+        # Check if any row was deleted
+        if cursor.rowcount == 0:
+            print(f"Error: No registration found for course {course_id} and student {student_id}.")
+            return jsonify({"error": "Failed to unregister course. Registration not found."}), 404
+
+        # Commit changes to the database
+        connection.commit()
+        print(f"Successfully unregistered course {course_id} for student {student_id}.")
+
+        return jsonify({"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
+
+    except Error as e:
+        print(f"Error updating seats or deleting registration: {e}")
+        return jsonify({"error": "Error updating seats or deleting registration!"}), 500
+
+    finally:
+        close_connection(connection)
+
+@app.route('/api/waitlist_course', methods=['POST'])
+def waitlist_course():
     data = request.get_json()
     course_id = data.get('course_id')
     student_id = data.get('student_id')
@@ -239,22 +289,112 @@ def unregister_course():
     try:
         cursor = connection.cursor()
 
-        # Update seats to increase by 1 in the courses table
-        update_query = "UPDATE courses SET seats_available = seats_available + 1 WHERE course_id = %s"
-        cursor.execute(update_query, (course_id,))
+        # Insert the student into the waitlist table with created_at timestamp
+        insert_query = """
+            INSERT INTO waitlist (student_id, course_id, created_at)
+            VALUES (%s, %s, NOW())
+        """
+        cursor.execute(insert_query, (student_id, course_id))
 
-        # Remove the entry from the registrations table for this student and course
-        delete_query = "DELETE FROM registrations WHERE course_id = %s AND student_id = %s"
+        # Decrement the waitlist seats for the course by 1
+        update_waitlist_seats_query = """
+            UPDATE courses
+            SET waitlist_seats = waitlist_seats - 1
+            WHERE course_id = %s AND waitlist_seats > 0
+        """
+        cursor.execute(update_waitlist_seats_query, (course_id,))
+
+        # Commit the transaction to apply changes
+        connection.commit()
+        print(f"Student {student_id} successfully added to the waitlist for course {course_id} and waitlist seats decremented.")
+
+        return jsonify({"message": "Successfully added to waitlist."}), 200
+
+    except Error as e:
+        print(f"Error adding to waitlist: {e}")
+        return jsonify({"error": "Error adding to waitlist!"}), 500
+
+    finally:
+        close_connection(connection)
+
+
+@app.route('/api/completed_courses', methods=['GET'])
+def get_completed_courses():
+    student_id = request.args.get('student_id')
+
+    if not student_id:
+        return jsonify({"error": "Student ID is required"}), 400
+
+    connection = create_connection()
+    if connection is None:
+        print("Database connection failed.")
+        return jsonify({"error": "Failed to connect to the database"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        # Log the student ID being used for the query
+        print(f"Fetching completed courses for student_id: {student_id}")
+
+        # Query to fetch completed courses with course details and grade
+        query_completed = """
+        SELECT c.course_id, c.name, comp.grade
+        FROM completed comp
+        JOIN courses c ON comp.course_id = c.course_id
+        WHERE comp.student_id = %s
+        """
+        cursor.execute(query_completed, (student_id,))
+        completed_courses = cursor.fetchall()
+
+        # Log the fetched data
+        print(f"Fetched completed courses: {completed_courses}")
+
+        return jsonify(completed_courses)
+
+    except Error as e:
+        print(f"Error querying the database: {e}")
+        return jsonify({"error": "Error fetching completed courses!"}), 500
+
+    finally:
+        close_connection(connection)
+
+@app.route('/api/remove_waitlist_course', methods=['POST'])
+def remove_waitlist_course():
+    data = request.get_json()
+    course_id = data.get('course_id')
+    student_id = data.get('student_id')
+
+    if not course_id or not student_id:
+        return jsonify({"error": "Course ID and Student ID are required!"}), 400
+
+    connection = create_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed!"}), 500
+
+    try:
+        cursor = connection.cursor()
+
+        # Delete the waitlist entry for the student and course
+        delete_query = "DELETE FROM waitlist WHERE course_id = %s AND student_id = %s"
         cursor.execute(delete_query, (course_id, student_id))
+
+        # Increment the waitlist seats for the course by 1
+        update_waitlist_seats_query = """
+            UPDATE courses
+            SET waitlist_seats = waitlist_seats + 1
+            WHERE course_id = %s
+        """
+        cursor.execute(update_waitlist_seats_query, (course_id,))
 
         # Commit changes to the database
         connection.commit()
 
-        return jsonify({"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
+        print(f"Successfully removed course {course_id} from waitlist for student {student_id} and incremented waitlist seats.")
+        return jsonify({"message": "Successfully removed from waitlist."}), 200
 
     except Error as e:
-        print(f"Error updating seats or deleting registration: {e}")
-        return jsonify({"error": "Error updating seats or deleting registration!"}), 500
+        print(f"Error removing course from waitlist: {e}")
+        return jsonify({"error": "Error removing course from waitlist!"}), 500
 
     finally:
         close_connection(connection)

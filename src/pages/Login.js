@@ -35,6 +35,29 @@ const Login = () => {
 
   return (
     <div className="login-container">
+        <h3>Test Accounts</h3>
+      <table className="test-accounts-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Password</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>rileydenton@email.com</td>
+            <td>password1</td>
+          </tr>
+          <tr>
+            <td>amandamoore2@email.com</td>
+            <td>password2</td>
+          </tr>
+          <tr>
+            <td>tylerjones@email.com</td>
+            <td>password3</td>
+          </tr>
+        </tbody>
+      </table>
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
         <div className="form-group">
@@ -63,6 +86,3 @@ const Login = () => {
 };
 
 export default Login;
-
-
-
