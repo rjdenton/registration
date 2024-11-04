@@ -5,15 +5,8 @@ from flask_cors import CORS
 from mysql.connector import Error
 from db import verify_login, create_connection, close_connection, get_recommendations, get_major_id_by_name
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='build')
 CORS(app)
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers.add("Access-Control-Allow-Origin", "https://mmis6299-registration-3fe6af6fc84a.herokuapp.com")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-    response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-    return response
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -22,6 +15,15 @@ def serve(path):
         return send_from_directory('build', path)
     else:
         return send_from_directory('build', 'index.html')
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers.add("Access-Control-Allow-Origin", "https://mmis6299-registration-3fe6af6fc84a.herokuapp.com")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+    return response
+
+
 
 @app.route('/api/login', methods=['OPTIONS','POST'])
 def login():
