@@ -1,6 +1,7 @@
 {
   "name": "registration-system",
   "version": "0.1.0",
+  "homepage": "https://your-heroku-app-name.herokuapp.com/",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
