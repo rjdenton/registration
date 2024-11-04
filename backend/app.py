@@ -15,6 +15,14 @@ def add_cors_headers(response):
     response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
     return response
 
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists("build/" + path):
+        return send_from_directory('build', path)
+    else:
+        return send_from_directory('build', 'index.html')
+
 @app.route('/api/login', methods=['OPTIONS','POST'])
 def login():
     data = request.get_json()
