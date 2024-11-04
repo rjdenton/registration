@@ -5,7 +5,7 @@ from flask_cors import CORS
 from mysql.connector import Error
 from db import verify_login, create_connection, close_connection, get_recommendations, get_major_id_by_name
 
-app = Flask(__name__, static_folder='build')
+app = Flask(__name__, static_folder='build', template_folder='build')
 CORS(app)
 
 @app.route('/', defaults={'path': ''})
