@@ -1,7 +1,6 @@
 /* global.css */
 body {
-    background-color: #f0f0f0; /* Replace with your desired background color */
-    background-image: url('/path/to/your/background-image.jpg'); /* Optional background image */
+    background-color: #0b3864; /* Replace with your desired background color */
     background-size: cover;
     background-repeat: no-repeat;
 }
