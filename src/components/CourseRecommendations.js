@@ -8,7 +8,7 @@ const CourseRecommendations = ({ studentId, majorName }) => {
     useEffect(() => {
         const fetchRecommendations = async () => {
             try {
-                const response = await fetch(`/api/recommendations?student_id=${studentId}&name=${majorName}`);
+                const response = await fetch(`https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/recommendations?student_id=${studentId}&name=${majorName}`);
 
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

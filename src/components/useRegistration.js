@@ -28,7 +28,7 @@ function useRegistration(user) {
     const fetchCurrentRegistrations = useCallback(async () => {
       if (user?.student_id) {
         try {
-          const response = await fetch(`http://127.0.0.1:5000/api/registered_courses?student_id=${user.student_id}`);
+          const response = await fetch(`https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/registered_courses?student_id=${user.student_id}`);
           if (response.ok) {
             const data = await response.json();
             setRegisteredCourses(data.registered_courses);
@@ -47,7 +47,7 @@ const fetchCompletedCourses = async () => {
     try {
       console.log("Fetching completed courses for student:", user.student_id);
 
-      const response = await fetch(`http://127.0.0.1:5000/api/completed_courses?student_id=${user.student_id}`);
+      const response = await fetch(`https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/completed_courses?student_id=${user.student_id}`);
       if (response.ok) {
         const data = await response.json();
         console.log("Fetched completed courses data:", data);
@@ -78,7 +78,7 @@ const fetchCompletedCourses = async () => {
     if (!major || !user?.student_id) return;
 
     const encodedMajor = encodeURIComponent(major);
-    const apiUrl = `http://127.0.0.1:5000/api/recommendations?major_name=${encodedMajor}&student_id=${user.student_id}`;
+    const apiUrl = `https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/recommendations?major_name=${encodedMajor}&student_id=${user.student_id}`;
 
     try {
       const response = await fetch(apiUrl);
@@ -116,7 +116,7 @@ const handleRemoveFromWaitlist = async () => {
 
   for (let courseId of removingWaitlistCourses) {
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/remove_waitlist_course', {
+      const response = await fetch('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/remove_waitlist_course', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ const handleRemoveFromWaitlist = async () => {
     try {
       if (course.seats_available > 0) {
         // Register directly if seats are available
-        const response = await fetch('http://127.0.0.1:5000/api/register_course', {
+        const response = await fetch('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/register_course', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ const handleRemoveFromWaitlist = async () => {
         console.log(`Successfully registered for course ${course.course_id}.`);
       } else {
         // If no seats are available, add to the waitlist
-        const waitlistResponse = await fetch('http://127.0.0.1:5000/api/waitlist_course', {
+        const waitlistResponse = await fetch('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/waitlist_course', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -268,7 +268,7 @@ const handleRemoveFromWaitlist = async () => {
 
     try {
       // Make the API request to unregister the course
-      const response = await fetch('http://127.0.0.1:5000/api/unregister_course', {
+      const response = await fetch('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/unregister_course', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

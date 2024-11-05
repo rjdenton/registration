@@ -8,7 +8,7 @@ const AvailableSeats = ({ courseId }) => {
     useEffect(() => {
         const fetchAvailableSeats = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:5000/api/available_seats?course_id=${courseId}`);
+                const response = await fetch(`https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/available_seats?course_id=${courseId}`);
                 if (!response.ok) {
                     throw new Error('Error fetching seat availability');
                 }
