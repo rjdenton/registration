@@ -38,6 +38,13 @@ function Register() {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
 
+  function capitalizeName(name) {
+    return name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+  }
+
   return (
     <div className="register-container">
           <h2 style={{
@@ -48,7 +55,7 @@ function Register() {
                 textAlign: 'center',     // Centered text
                 fontFamily: 'Arial, sans-serif',  // Font family
             }}>
-                Welcome, {user?.name || 'User'}!
+                Welcome, {capitalizeName(user?.name || 'User')}!
           </h2>
 
 
