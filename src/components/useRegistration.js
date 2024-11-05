@@ -288,11 +288,6 @@ const handleRemoveFromWaitlist = async () => {
 
       console.log(`Successfully unregistered course ${course.course_id}.`);
 
-      // Add the unregistered course back to available courses and increment seats
-      setCourses((prevCourses) => [
-        ...prevCourses,
-        { ...course, seats_available: course.seats_available + 1 },
-      ]);
     } catch (error) {
       console.error(`Error during API request to unregister course ${course.course_id}:`, error);
     }
