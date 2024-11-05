@@ -14,7 +14,6 @@ function App() {
           <Route path="/Login" element={<Login />} />
         </Routes>
       </Router>
-    </div>
   );
 }
 
