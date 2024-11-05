@@ -49,9 +49,7 @@ function Register() {
     <div className="register-container">
           <h2 style={{
                 color: '#ffffff',        // Text color
-                backgroundColor: '#0b3864',  // Background color
                 padding: '10px 20px',    // Padding around the text
-                borderRadius: '8px',     // Rounded corners
                 textAlign: 'center',     // Centered text
                 fontFamily: 'Arial, sans-serif',  // Font family
             }}>
