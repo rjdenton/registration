@@ -40,7 +40,17 @@ function Register() {
 
   return (
     <div className="register-container">
-      <h2>Welcome, {user?.name || 'User'}!</h2>
+          <h2 style={{
+                color: '#ffffff',        // Text color
+                backgroundColor: '#0b3864',  // Background color
+                padding: '10px 20px',    // Padding around the text
+                borderRadius: '8px',     // Rounded corners
+                textAlign: 'center',     // Centered text
+                fontFamily: 'Arial, sans-serif',  // Font family
+            }}>
+                Welcome, {user?.name || 'User'}!
+          </h2>
+
 
       <div className="container expanded-container" style={{ maxWidth: '1600px', minWidth: '1200px' }}>
         <div className="tabs">
