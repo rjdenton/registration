@@ -5,16 +5,16 @@ from flask_cors import CORS
 from mysql.connector import Error
 from db import verify_login, create_connection, close_connection, get_recommendations, get_major_id_by_name
 
-app = Flask(__name__, static_folder='build', template_folder='build')
+app = Flask(__name__, static_folder='../build', template_folder='../build')
 CORS(app)
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and os.path.exists("build/" + path):
-        return send_from_directory('build', path)
+    if path != "" and os.path.exists("../build/" + path):
+        return send_from_directory('../build', path)
     else:
-        return send_from_directory('build', 'index.html')
+        return send_from_directory('../build', 'index.html')
 
 
 @app.after_request
