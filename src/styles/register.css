@@ -86,9 +86,9 @@ body {
 
 .form-container {
   width: 100%;
-  max-width: 1000px;
+  max-width: 8000px;
   height: 100%;
-  max-height: 700px;
+  max-height: 500px;
   padding: 30px;
   border-radius: 10px;
   display: flex;

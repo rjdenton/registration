@@ -150,7 +150,7 @@ def emit_seat_update(course_id):
         result = cursor.fetchone()
 
         if result:
-            # Emit to all connected clients without the `broadcast` argument
+            print(f"Emitting seat update: {result}")  # Log emitted data
             socketio.emit('seat_update', result)
         else:
             print(f"No data found for course_id: {course_id}")

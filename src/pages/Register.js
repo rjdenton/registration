@@ -35,7 +35,7 @@ function Register() {
   } = useRegistration(user);
 
     const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-        transports: ['websocket']
+        transports: ["websocket"]
         });
 
     const [availableSeats, setAvailableSeats] = useState({});
@@ -46,13 +46,25 @@ function Register() {
   }, [user, fetchCurrentRegistrations]);
 
   useEffect(() => {
-    // Listen for 'seat_update' events from the server
-    socket.on("seat_update", (data) => {
-      setAvailableSeats((prevSeats) => ({
-        ...prevSeats,
-        [data.course_id]: data.seats_available,
-      }));
+    console.log("Attempting WebSocket connection");
+    socket.on("connect", () => {
+        console.log("Connected to WebSocket server");
     });
+
+    // Listen for seat updates
+    socket.on("seat_update", (data) => {
+        console.log("Received seat update:", data);
+        setAvailableSeats((prevSeats) => ({
+            ...prevSeats,
+            [data.course_id]: data.seats_available,
+        }));
+    });
+
+    return () => {
+        socket.off("seat_update");
+    };
+  }, []);
+
 
     // Clean up WebSocket connection on component unmount
     return () => {
