@@ -41,6 +41,20 @@ function Register() {
     const [availableSeats, setAvailableSeats] = useState({});
     const [waitlistSeats, setWaitlistSeats] = useState({});
 
+  const fetchDegreeWorks = async () => {
+    try {
+      const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRequiredCourses(data);
+      } else {
+        console.error("Failed to fetch DegreeWorks data");
+      }
+    } catch (error) {
+      console.error("Error fetching DegreeWorks:", error);
+    }
+  };
+
   // Use useEffect in the component to handle side effects.
   useEffect(() => {
     fetchCurrentRegistrations();
@@ -92,29 +106,20 @@ function Register() {
 
       <div className="container expanded-container" style={{ maxWidth: '1600px', minWidth: '1200px' }}>
         <div className="tabs">
-          <div
-            className={`tab ${activeTab === 'current' ? 'active' : ''}`}
-            onClick={() => handleTabChange('current')}
-          >
+          <div className={`tab ${activeTab === 'current' ? 'active' : ''}`} onClick={() => handleTabChange('current')}>
             Currently Registered
           </div>
-          <div
-            className={`tab ${activeTab === 'available' ? 'active' : ''}`}
-            onClick={() => handleTabChange('available')}
-          >
+          <div className={`tab ${activeTab === 'available' ? 'active' : ''}`}onClick={() => handleTabChange('available')}>
             Available Courses
           </div>
-          <div
-            className={`tab ${activeTab === 'waitlist' ? 'active' : ''}`}
-            onClick={() => handleTabChange('waitlist')}
-          >
+          <div className={`tab ${activeTab === 'waitlist' ? 'active' : ''}`}onClick={() => handleTabChange('waitlist')}>
             Waitlist
           </div>
-          <div
-            className={`tab ${activeTab === 'completed' ? 'active' : ''}`}
-            onClick={() => handleTabChange('completed')}
-          >
+          <div className={`tab ${activeTab === 'completed' ? 'active' : ''}`}onClick={() => handleTabChange('completed')}>
             Completed Courses
+          </div>
+          <div className={`tab ${activeTab === 'degreeworks' ? 'active' : ''}`} onClick={() => setActiveTab('degreeworks')}>
+            DegreeWorks
           </div>
         </div>
 
@@ -300,6 +305,36 @@ function Register() {
                 )}
               </div>
             )}
+
+            {activeTab === 'degreeworks' && (
+          <div className="degreeworks-container">
+            <h2>Degree Requirements</h2>
+            {requiredCourses.length > 0 ? (
+              <table className="degreeworks-table">
+                <thead>
+                  <tr>
+                    <th>Course ID</th>
+                    <th>Course Name</th>
+                    <th>Credits</th>
+                    <th>Available Semester</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requiredCourses.map(course => (
+                    <tr key={course.course_id}>
+                      <td>{course.course_id}</td>
+                      <td>{course.name}</td>
+                      <td>{course.credits}</td>
+                      <td>{course.semester_available}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p>No degree requirements found for this major.</p>
+            )}
+          </div>
+        )}
 
         </div>
 

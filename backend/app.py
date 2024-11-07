@@ -444,6 +444,49 @@ def remove_waitlist_course():
     finally:
         close_connection(connection)
 
+
+@app.route('/api/degreeworks', methods=['GET'])
+def get_degreeworks():
+    student_id = request.args.get('student_id')
+
+    if not student_id:
+        return jsonify({"error": "Student ID is required"}), 400
+
+    # Fetch the student's major based on student_id
+    connection = create_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed!"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        # Get the major of the student
+        cursor.execute("SELECT major_id FROM students WHERE student_id = %s", (student_id,))
+        result = cursor.fetchone()
+        if not result:
+            return jsonify({"error": "Student or major not found"}), 404
+        major_id = result['major_id']
+
+        # Get required courses for the student's major
+        query = """
+        SELECT c.course_id, c.name, c.credits, c.semester_available
+        FROM major_courses mc
+        JOIN courses c ON mc.course_id = c.course_id
+        WHERE mc.major_id = %s AND mc.course_type = 'Required'
+        """
+        cursor.execute(query, (major_id,))
+        required_courses = cursor.fetchall()
+
+        return jsonify(required_courses)
+
+    except Error as e:
+        print(f"Error querying the database: {e}")
+        return jsonify({"error": "Error fetching degree requirements!"}), 500
+
+    finally:
+        close_connection(connection)
+
+
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
 
