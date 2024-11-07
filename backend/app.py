@@ -146,7 +146,10 @@ def emit_seat_update(course_id):
     connection = create_connection()
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT course_id, seats_available FROM courses WHERE course_id = %s", (course_id,))
+        cursor.execute(
+            "SELECT course_id, seats_available, waitlist_seats FROM courses WHERE course_id = %s",
+            (course_id,)
+        )
         result = cursor.fetchone()
 
         if result:
@@ -345,6 +348,7 @@ def waitlist_course():
 
         # Commit the transaction to apply changes
         connection.commit()
+        emit_seat_update(course_id)
         print(f"Student {student_id} successfully added to the waitlist for course {course_id} and waitlist seats decremented.")
 
         return jsonify({"message": "Successfully added to waitlist."}), 200

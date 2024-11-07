@@ -58,6 +58,10 @@ function Register() {
             ...prevSeats,
             [data.course_id]: data.seats_available,
         }));
+        setWaitlistSeats((prevWaitlistSeats) => ({
+                ...prevWaitlistSeats,
+                [data.course_id]: data.waitlist_seats,
+        }));
     });
 
     return () => {
@@ -170,7 +174,7 @@ function Register() {
                               <td>{course.name}</td>
                               <td>{course.credits}</td>
                               <td>{availableSeats[course.course_id] || course.seats_available}</td>
-                              <td>{course.waitlist_seats}</td>
+                              <td>{waitlistSeats[course.course_id] || course.waitlist_seats}</td>
                             </tr>
                           ))}
                       </tbody>
