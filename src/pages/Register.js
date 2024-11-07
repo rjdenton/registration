@@ -59,8 +59,6 @@ function Register() {
       }
     });
 
-    const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0.0;
-    setGpa(gpa);
   };
 
   // Fetch required courses for DegreeWorks
