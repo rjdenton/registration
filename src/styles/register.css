@@ -84,7 +84,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
   padding: 20px;
   box-sizing: border-box;
@@ -166,7 +166,7 @@ label {
   overflow-y: auto;
   overflow-x: auto;
   align-self: center;
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 100px);
 }
 
 .courses-table {
