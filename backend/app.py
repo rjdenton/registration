@@ -10,6 +10,7 @@ from db import verify_login, create_connection, close_connection, get_recommenda
 
 app = Flask(__name__, static_folder='../build', template_folder='../build')
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -432,9 +433,7 @@ def remove_waitlist_course():
     finally:
         close_connection(connection)
 
-
-
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+
 
