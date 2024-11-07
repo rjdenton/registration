@@ -66,12 +66,6 @@ function Register() {
   }, []);
 
 
-    // Clean up WebSocket connection on component unmount
-    return () => {
-      socket.off("seat_update");
-    };
-  }, []);
-
   function capitalizeName(name) {
     return name
         .split(' ')
