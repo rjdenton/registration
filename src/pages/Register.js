@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import useRegistration from '../components/useRegistration.js'
+import useRegistration from '../components/useRegistration.js';
 import { useUser } from '../components/UserContext';
 import '../styles/register.css';
 import io from 'socket.io-client';
@@ -34,15 +34,17 @@ function Register() {
     waitlistCourses
   } = useRegistration(user);
 
-    const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-        transports: ["websocket"]
-        });
+  // Connect to WebSocket
+  const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
+    transports: ["websocket"]
+  });
 
-    const [availableSeats, setAvailableSeats] = useState({});
-    const [waitlistSeats, setWaitlistSeats] = useState({});
-    const [setActiveTab] = useState('current');
-    const [requiredCourses, setRequiredCourses] = useState([]);
+  const [availableSeats, setAvailableSeats] = useState({});
+  const [waitlistSeats, setWaitlistSeats] = useState({});
+  const [activeTab, setActiveTab] = useState('current');  // Correctly define activeTab with setActiveTab
+  const [requiredCourses, setRequiredCourses] = useState([]);
 
+  // Fetch required courses for DegreeWorks
   const fetchDegreeWorks = async () => {
     try {
       const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
@@ -57,47 +59,47 @@ function Register() {
     }
   };
 
+  // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
     if (activeTab === 'degreeworks') {
       fetchDegreeWorks();
     }
   }, [activeTab, user]);
 
-  // Use useEffect in the component to handle side effects.
+  // Initial fetch for current registrations
   useEffect(() => {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
 
+  // Handle WebSocket connection and seat updates
   useEffect(() => {
-    console.log("Attempting WebSocket connection");
     socket.on("connect", () => {
-        console.log("Connected to WebSocket server");
+      console.log("Connected to WebSocket server");
     });
 
-    // Listen for seat updates
     socket.on("seat_update", (data) => {
-        console.log("Received seat update:", data);
-        setAvailableSeats((prevSeats) => ({
-            ...prevSeats,
-            [data.course_id]: data.seats_available,
-        }));
-        setWaitlistSeats((prevWaitlistSeats) => ({
-                ...prevWaitlistSeats,
-                [data.course_id]: data.waitlist_seats,
-        }));
+      console.log("Received seat update:", data);
+      setAvailableSeats((prevSeats) => ({
+        ...prevSeats,
+        [data.course_id]: data.seats_available,
+      }));
+      setWaitlistSeats((prevWaitlistSeats) => ({
+        ...prevWaitlistSeats,
+        [data.course_id]: data.waitlist_seats,
+      }));
     });
 
     return () => {
-        socket.off("seat_update");
+      socket.off("seat_update");
     };
-  }, []);
+  }, [socket]);
 
-
+  // Function to capitalize the user name
   function capitalizeName(name) {
     return name
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   return (
