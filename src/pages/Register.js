@@ -323,43 +323,47 @@ function Register() {
               </div>
             )}
 
-            <div className="degreeworks-container">
-              <h2>Degree Requirements</h2>
-              <h4>Degree Progress</h4>
-              {/* Progress Bar */}
-            <div className="progress-bar">
-              <div
-                className="progress-bar-fill"
-                style={{ width: `${progressPercentage}%` }}
-              >
-                {progressPercentage}%
-              </div>
-            </div>
-              {requiredCourses.length > 0 ? (
-                <table className="degreeworks-table">
-                  <thead>
-                    <tr>
-                      <th>Course ID</th>
-                      <th>Course Name</th>
-                      <th>Credits</th>
-                      <th>Grade</th> {/* New Grade Column */}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {requiredCourses.map(course => (
-                      <tr key={course.course_id}>
-                        <td>{course.course_id}</td>
-                        <td>{course.name}</td>
-                        <td>{course.credits}</td>
-                        <td>{course.grade || ''}</td> {/* Show grade if available, else blank */}
+            {activeTab === 'degreeworks' && (
+              <div className="degreeworks-container">
+                <h2>Degree Requirements</h2>
+
+                {/* Progress Bar */}
+                <div className="progress-bar">
+                  <div
+                    className="progress-bar-fill"
+                    style={{ width: `${progressPercentage}%` }}
+                  >
+                    {progressPercentage}%
+                  </div>
+                </div>
+
+                {requiredCourses.length > 0 ? (
+                  <table className="degreeworks-table">
+                    <thead>
+                      <tr>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Credits</th>
+                        <th>Grade</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p>No degree requirements found for this major.</p>
-              )}
-            </div>
+                    </thead>
+                    <tbody>
+                      {requiredCourses.map(course => (
+                        <tr key={course.course_id}>
+                          <td>{course.course_id}</td>
+                          <td>{course.name}</td>
+                          <td>{course.credits}</td>
+                          <td>{course.grade || ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p>No degree requirements found for this major.</p>
+                )}
+              </div>
+            )}
+
         </div>
         {activeTab === 'current' && unregisteringCourses.length > 0 && (
           <div className="submit-container">
