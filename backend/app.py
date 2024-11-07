@@ -300,6 +300,7 @@ def unregister_course():
 
         # Commit changes to the database
         connection.commit()
+        emit_seat_update(course_id)
         print(f"Successfully unregistered course {course_id} for student {student_id}.")
 
         return jsonify({"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
@@ -426,6 +427,8 @@ def remove_waitlist_course():
 
         # Commit changes to the database
         connection.commit()
+
+        emit_seat_update(course_id)
 
         print(f"Successfully removed course {course_id} from waitlist for student {student_id} and incremented waitlist seats.")
         return jsonify({"message": "Successfully removed from waitlist."}), 200
