@@ -150,7 +150,8 @@ def emit_seat_update(course_id):
         result = cursor.fetchone()
 
         if result:
-            socketio.emit('seat_update', result, broadcast=True)
+            # Emit to all connected clients without the `broadcast` argument
+            socketio.emit('seat_update', result)
         else:
             print(f"No data found for course_id: {course_id}")
 
@@ -158,6 +159,7 @@ def emit_seat_update(course_id):
         print(f"Exception in emit_seat_update: {e}")
     finally:
         close_connection(connection)
+
 
 @app.route('/api/register_course', methods=['OPTIONS', 'POST'])
 def register_course():
