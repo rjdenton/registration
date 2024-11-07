@@ -325,6 +325,7 @@ function Register() {
 
             <div className="degreeworks-container">
               <h2>Degree Requirements</h2>
+              <h4>Degree Progress</h4>
               {/* Progress Bar */}
             <div className="progress-bar">
               <div
