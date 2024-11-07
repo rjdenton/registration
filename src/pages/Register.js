@@ -41,7 +41,6 @@ function Register() {
     const [availableSeats, setAvailableSeats] = useState({});
     const [waitlistSeats, setWaitlistSeats] = useState({});
     const [requiredCourses, setRequiredCourses] = useState([]);
-    const [activeTab, setActiveTab] = useState('current');
 
   const fetchDegreeWorks = async () => {
     try {
