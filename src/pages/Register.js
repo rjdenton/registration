@@ -51,16 +51,6 @@ function Register() {
 
     const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
 
-    completedCourses.forEach(course => {
-      const grade = course.grade;
-      if (grade && gradePoints.hasOwnProperty(grade)) {
-        totalPoints += gradePoints[grade] * course.credits;
-        totalCredits += course.credits;
-      }
-    });
-
-  };
-
   // Fetch required courses for DegreeWorks
   const fetchDegreeWorks = async () => {
     try {
