@@ -314,8 +314,16 @@ function Register() {
                       </tr>
                     </thead>
                     <tbody>
-                      {requiredCourses.map(course => (
-                        <tr key={course.course_id}>
+                      {requiredCourses.map((course) => (
+                        <tr
+                          key={course.course_id}
+                          className={
+                            course.grade &&
+                            (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
+                              ? 'completed-course-row'
+                              : ''
+                          }
+                        >
                           <td>{course.course_id}</td>
                           <td>{course.name}</td>
                           <td>{course.credits}</td>
