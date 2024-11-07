@@ -141,38 +141,41 @@ def get_available_seats():
         cursor.close()
         close_connection(connection)
 
+
 def emit_seat_update(course_id):
     connection = create_connection()
-
     try:
         cursor = connection.cursor(dictionary=True)
-        query = "SELECT course_id, seats_available FROM courses WHERE course_id = %s"
-        cursor.execute(query, (course_id,))
+        cursor.execute("SELECT course_id, seats_available FROM courses WHERE course_id = %s", (course_id,))
         result = cursor.fetchone()
 
         if result:
-            socketio.emit('seat_update', result, broadcast=True)  # Broadcast to all connected clients
+            socketio.emit('seat_update', result, broadcast=True)
+        else:
+            print(f"No data found for course_id: {course_id}")
+
+    except Exception as e:
+        print(f"Exception in emit_seat_update: {e}")
     finally:
         close_connection(connection)
 
-@app.route('/api/register_course', methods=['OPTIONS','POST'])
+@app.route('/api/register_course', methods=['OPTIONS', 'POST'])
 def register_course():
     data = request.json
     course_id = data.get('course_id')
-    student_id = data.get('student_id')  # Get student_id from the request
+    student_id = data.get('student_id')
 
     if not course_id or not student_id:
         return jsonify({'error': 'Course ID and Student ID are required'}), 400
 
     try:
-        # Decrease the seats_available by 1 for the course if seats are available
         connection = create_connection()
         if connection is None:
             return jsonify({"error": "Failed to connect to the database"}), 500
 
         cursor = connection.cursor()
 
-        # Lock the row for update to prevent race conditions
+        # Lock row for update to prevent race conditions
         cursor.execute("""
             UPDATE courses
             SET seats_available = seats_available - 1
@@ -181,26 +184,25 @@ def register_course():
 
         # Check if any rows were affected (i.e., seats were available)
         if cursor.rowcount > 0:
-            # Insert into the registrations table
             cursor.execute("""
                 INSERT INTO registrations (student_id, course_id)
                 VALUES (%s, %s)
             """, (student_id, course_id))
-
-            # Commit the transaction to apply changes
             connection.commit()
 
+            # Emit seat update if registration was successful
             emit_seat_update(course_id)
             return jsonify({'message': 'Course registered successfully'}), 200
         else:
             return jsonify({'error': 'No available seats or invalid course'}), 400
 
-    except mysql.connector.Error as e:
-        print(f"Database error: {e}")
-        return jsonify({'error': 'Database error occurred'}), 500
+    except Exception as e:
+        print(f"Exception occurred: {e}")
+        return jsonify({'error': 'An unexpected error occurred'}), 500
 
     finally:
         close_connection(connection)
+
 
 
 @app.route('/api/registered_courses', methods=['OPTIONS','GET'])
