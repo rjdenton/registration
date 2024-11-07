@@ -54,37 +54,30 @@ function Register() {
   // Fetch required courses for DegreeWorks
   // Within fetchDegreeWorks, adjust the major and credits calculation
 
+// Fetch required courses for DegreeWorks, including the major name
 const fetchDegreeWorks = async () => {
   try {
     const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
     if (response.ok) {
       const data = await response.json();
-
-      // Setting data from the response
       setRequiredCourses(data.courses);
       setStudentName(data.student_name);
-      setMajorName(data.major_name); // Ensure this matches the API response key
 
-      // Calculate total credits from required courses
-      const totalCreditsRequired = data.courses.reduce((acc, course) => acc + course.credits, 0);
-      const completedCreditsCalc = data.courses
-        .filter(course => course.grade && gradePoints[course.grade] >= 2.0) // Only include grades C or above
-        .reduce((acc, course) => acc + course.credits, 0);
+      // Fetch the major name if it's not already in the data
+      const majorResponse = await fetch(`/api/major_name?major_id=${user.major_id}`);
+      if (majorResponse.ok) {
+        const majorData = await majorResponse.json();
+        setMajorName(majorData.major_name); // Ensure this matches the key from the server
+      } else {
+        console.error("Failed to fetch major name");
+      }
 
-      // Set the calculated values
-      setTotalCredits(totalCreditsRequired);
-      setCompletedCredits(completedCreditsCalc);
+      // Calculate GPA based on completed courses
+      const completedWithGrades = data.courses.filter(course => course.grade && gradePoints[course.grade]);
+      const totalPoints = completedWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
+      const totalCredits = completedWithGrades.reduce((acc, course) => acc + course.credits, 0);
+      const calculatedGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
 
-      // Calculate GPA for courses with grades
-      const totalPoints = data.courses
-        .filter(course => course.grade && gradePoints[course.grade])
-        .reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
-
-      const totalCreditsWithGrades = data.courses
-        .filter(course => course.grade && gradePoints[course.grade])
-        .reduce((acc, course) => acc + course.credits, 0);
-
-      const calculatedGPA = totalCreditsWithGrades > 0 ? (totalPoints / totalCreditsWithGrades).toFixed(2) : 0;
       setGPA(calculatedGPA);
     } else {
       console.error("Failed to fetch DegreeWorks data");
@@ -93,7 +86,7 @@ const fetchDegreeWorks = async () => {
     console.error("Error fetching DegreeWorks:", error);
   }
 };
-;
+
 
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
