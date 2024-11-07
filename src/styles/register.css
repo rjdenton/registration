@@ -203,3 +203,17 @@ body {
 .completed-course-row {
   background-color: #d4edda; /* Light green background for completed courses */
 }
+
+.unsatisfactory-course-row {
+  background-color: #f8d7da; /* Light red for unsatisfactory grades */
+  color: #721c24; /* Dark red text for better visibility */
+}
+
+.student-info {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.student-info p {
+  margin: 5px 0;
+}

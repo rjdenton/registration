@@ -45,6 +45,24 @@ function Register() {
   const [requiredCourses, setRequiredCourses] = useState([]);
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
+  const [gpa, setGpa] = useState(0.0);
+
+    const calculateGPA = () => {
+    const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
+    let totalPoints = 0;
+    let totalCredits = 0;
+
+    completedCourses.forEach(course => {
+      const grade = course.grade;
+      if (grade && gradePoints.hasOwnProperty(grade)) {
+        totalPoints += gradePoints[grade] * course.credits;
+        totalCredits += course.credits;
+      }
+    });
+
+    const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0.0;
+    setGpa(gpa);
+  };
 
   // Fetch required courses for DegreeWorks
   const fetchDegreeWorks = async () => {
@@ -55,6 +73,7 @@ function Register() {
         setRequiredCourses(data.courses);
         setTotalCredits(data.total_credits);
         setCompletedCredits(data.completed_credits);
+        calculateGPA(); // Call GPA calculation
       } else {
         console.error("Failed to fetch DegreeWorks data");
       }
@@ -68,7 +87,7 @@ function Register() {
     if (activeTab === 'degreeworks') {
       fetchDegreeWorks();
     }
-  }, [activeTab, user]);
+  }, [activeTab, user, completedCourses]);
 
   const progressPercentage = totalCredits ? Math.round((completedCredits / totalCredits) * 100) : 0;
 
@@ -289,54 +308,63 @@ function Register() {
               </div>
             )}
 
-            {activeTab === 'degreeworks' && (
-              <div className="degreeworks-container">
-                <h2>Degree Requirements</h2>
+             {activeTab === 'degreeworks' && (
+            <div className="degreeworks-container">
+              <h2>Degree Requirements</h2>
 
-                {/* Progress Bar */}
-                <div className="progress-bar">
-                  <div
-                    className="progress-bar-fill"
-                    style={{ width: `${progressPercentage}%` }}
-                  >
-                    {progressPercentage}%
-                  </div>
-                </div>
-
-                {requiredCourses.length > 0 ? (
-                  <table className="degreeworks-table">
-                    <thead>
-                      <tr>
-                        <th>Course ID</th>
-                        <th>Course Name</th>
-                        <th>Credits</th>
-                        <th>Grade</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {requiredCourses.map((course) => (
-                        <tr
-                          key={course.course_id}
-                          className={
-                            course.grade &&
-                            (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
-                              ? 'completed-course-row'
-                              : ''
-                          }
-                        >
-                          <td>{course.course_id}</td>
-                          <td>{course.name}</td>
-                          <td>{course.credits}</td>
-                          <td>{course.grade || ''}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p>No degree requirements found for this major.</p>
-                )}
+              {/* Student Info and GPA */}
+              <div className="student-info">
+                <p><strong>Name:</strong> {capitalizeName(user?.name || 'User')}</p>
+                <p><strong>Major:</strong> {major || 'Not Selected'}</p>
+                <p><strong>GPA:</strong> {gpa}</p>
               </div>
-            )}
+
+              {/* Progress Bar */}
+              <div className="progress-bar">
+                <div
+                  className="progress-bar-fill"
+                  style={{ width: `${progressPercentage}%` }}
+                >
+                  {progressPercentage}%
+                </div>
+              </div>
+
+              {requiredCourses.length > 0 ? (
+                <table className="degreeworks-table">
+                  <thead>
+                    <tr>
+                      <th>Course ID</th>
+                      <th>Course Name</th>
+                      <th>Credits</th>
+                      <th>Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {requiredCourses.map(course => (
+                      <tr
+                        key={course.course_id}
+                        className={
+                          course.grade && (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
+                            ? 'completed-course-row' // Light green for grades A, B, C
+                            : course.grade && (course.grade === 'D' || course.grade === 'F')
+                            ? 'unsatisfactory-course-row' // Light red for grades D or F
+                            : ''
+                        }
+                      >
+                        <td>{course.course_id}</td>
+                        <td>{course.name}</td>
+                        <td>{course.credits}</td>
+                        <td>{course.grade || ''}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>No degree requirements found for this major.</p>
+              )}
+            </div>
+          )}
+
 
         </div>
         {activeTab === 'current' && unregisteringCourses.length > 0 && (
