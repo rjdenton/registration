@@ -317,34 +317,34 @@ function Register() {
             )}
 
             {activeTab === 'degreeworks' && (
-          <div className="degreeworks-container">
-            <h2>Degree Requirements</h2>
-            {requiredCourses.length > 0 ? (
-              <table className="degreeworks-table">
-                <thead>
-                  <tr>
-                    <th>Course ID</th>
-                    <th>Course Name</th>
-                    <th>Credits</th>
-                    <th>Available Semester</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {requiredCourses.map(course => (
-                    <tr key={course.course_id}>
-                      <td>{course.course_id}</td>
-                      <td>{course.name}</td>
-                      <td>{course.credits}</td>
-                      <td>{course.semester_available}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p>No degree requirements found for this major.</p>
-            )}
-          </div>
-        )}
+                <div className="degreeworks-container">
+                  <h2>Degree Requirements</h2>
+                  {requiredCourses.length > 0 ? (
+                    <table className="degreeworks-table">
+                      <thead>
+                        <tr>
+                          <th>Course ID</th>
+                          <th>Course Name</th>
+                          <th>Credits</th>
+                          <th>Available Semester</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {requiredCourses.map(course => (
+                          <tr key={course.course_id}>
+                            <td>{course.course_id}</td>
+                            <td>{course.name}</td>
+                            <td>{course.credits}</td>
+                            <td>{course.semester_available}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p>No degree requirements found for this major.</p>
+                  )}
+                </div>
+              )}
 
         </div>
 

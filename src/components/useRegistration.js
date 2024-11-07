@@ -332,7 +332,8 @@ const handleRemoveFromWaitlist = async () => {
     setWaitlistCourses,
     removingWaitlistCourses,
     handleWaitlistCheckboxChange,
-    handleRemoveFromWaitlist
+    handleRemoveFromWaitlist,
+    setActiveTab
   };
 }
 
