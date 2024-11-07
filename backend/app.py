@@ -1,7 +1,10 @@
 import mysql
 import os
+
+import socketio
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 from mysql.connector import Error
 from db import verify_login, create_connection, close_connection, get_recommendations, get_major_id_by_name
 
@@ -137,10 +140,19 @@ def get_available_seats():
         cursor.close()
         close_connection(connection)
 
-from flask import request, jsonify
-import mysql.connector
+def emit_seat_update(course_id):
+    connection = create_connection()
 
-# Assume you already have your MySQL connection set up
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = "SELECT course_id, seats_available FROM courses WHERE course_id = %s"
+        cursor.execute(query, (course_id,))
+        result = cursor.fetchone()
+
+        if result:
+            socketio.emit('seat_update', result, broadcast=True)  # Broadcast to all connected clients
+    finally:
+        close_connection(connection)
 
 @app.route('/api/register_course', methods=['OPTIONS','POST'])
 def register_course():
@@ -176,6 +188,8 @@ def register_course():
 
             # Commit the transaction to apply changes
             connection.commit()
+
+            emit_seat_update(course_id)
             return jsonify({'message': 'Course registered successfully'}), 200
         else:
             return jsonify({'error': 'No available seats or invalid course'}), 400

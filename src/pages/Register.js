@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useRegistration from '../components/useRegistration.js'
 import { useUser } from '../components/UserContext';
 import '../styles/register.css';
+import io from 'socket.io-client';
 
 function Register() {
   const { user } = useUser();
@@ -33,10 +34,29 @@ function Register() {
     waitlistCourses
   } = useRegistration(user);
 
+    const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com");
+
+    const [availableSeats, setAvailableSeats] = useState({});
+
   // Use useEffect in the component to handle side effects.
   useEffect(() => {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
+
+  useEffect(() => {
+    // Listen for 'seat_update' events from the server
+    socket.on("seat_update", (data) => {
+      setAvailableSeats((prevSeats) => ({
+        ...prevSeats,
+        [data.course_id]: data.seats_available,
+      }));
+    });
+
+    // Clean up WebSocket connection on component unmount
+    return () => {
+      socket.off("seat_update");
+    };
+  }, []);
 
   function capitalizeName(name) {
     return name
@@ -141,7 +161,7 @@ function Register() {
                               <td>{course.course_id}</td>
                               <td>{course.name}</td>
                               <td>{course.credits}</td>
-                              <td>{course.seats_available}</td>
+                              <td>{availableSeats[course.course_id] || course.seats_available}</td>
                               <td>{course.waitlist_seats}</td>
                             </tr>
                           ))}
