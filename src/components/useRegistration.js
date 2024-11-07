@@ -67,8 +67,6 @@ const fetchCompletedCourses = async () => {
     fetchCurrentRegistrations();
   } else if (tab === 'available' && user?.student_id) {
     handleSubmit({ preventDefault: () => {} });
-  } else if (tab === 'completed' && user?.student_id) {
-    fetchCompletedCourses();
   }
 };
 

@@ -132,9 +132,6 @@ function Register() {
           <div className={`tab ${activeTab === 'waitlist' ? 'active' : ''}`}onClick={() => handleTabChange('waitlist')}>
             Waitlist
           </div>
-          <div className={`tab ${activeTab === 'completed' ? 'active' : ''}`}onClick={() => handleTabChange('completed')}>
-            Completed Courses
-          </div>
           <div className={`tab ${activeTab === 'degreeworks' ? 'active' : ''}`} onClick={() => setActiveTab('degreeworks')}>
             DegreeWorks
           </div>
@@ -253,37 +250,6 @@ function Register() {
                 )}
               </div>
             )}
-
-
-
-          {activeTab === 'completed' && (
-              <div className="completed-courses">
-                <h2>Completed Courses</h2>
-                {completedCourses.length > 0 ? (
-                  <table className="courses-table full-width styled-table">
-                    <thead>
-                      <tr>
-                        <th>Course ID</th>
-                        <th>Course Name</th>
-                        <th>Grade</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {completedCourses.map((course) => (
-                        <tr key={course.course_id}>
-                          <td>{course.course_id}</td>
-                          <td>{course.name}</td>
-                          <td>{course.grade}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="no-courses-message">No completed courses available.</p>
-                )}
-              </div>
-            )}
-
 
           {activeTab === 'current' && (
               <div className="current-registrations">
