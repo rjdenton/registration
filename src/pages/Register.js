@@ -45,7 +45,8 @@ function Register() {
   const [requiredCourses, setRequiredCourses] = useState([]);
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
-  const [gpa, setGpa] = useState(0.0);
+  const [majorName, setMajorName] = useState('');
+  const [gpa, setGpa] = useState(0);
 
     const calculateGPA = () => {
     const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
@@ -71,9 +72,16 @@ function Register() {
       if (response.ok) {
         const data = await response.json();
         setRequiredCourses(data.courses);
-        setTotalCredits(data.total_credits);
-        setCompletedCredits(data.completed_credits);
-        calculateGPA(); // Call GPA calculation
+        setStudentName(data.student_name);
+        setMajorName(data.major_name);
+
+        // Calculate GPA based on completed courses
+        const completedWithGrades = data.courses.filter(course => course.grade && gradePoints[course.grade]);
+        const totalPoints = completedWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
+        const totalCredits = completedWithGrades.reduce((acc, course) => acc + course.credits, 0);
+        const calculatedGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+
+        setGPA(calculatedGPA);
       } else {
         console.error("Failed to fetch DegreeWorks data");
       }
@@ -81,6 +89,7 @@ function Register() {
       console.error("Error fetching DegreeWorks:", error);
     }
   };
+
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
@@ -315,7 +324,7 @@ function Register() {
               {/* Student Info and GPA */}
               <div className="student-info">
                 <p><strong>Name:</strong> {capitalizeName(user?.name || 'User')}</p>
-                <p><strong>Major:</strong> {major || 'Not Selected'}</p>
+                <p><strong>Major:</strong> {majorName || 'Not Selected'}</p>
                 <p><strong>GPA:</strong> {gpa}</p>
               </div>
 

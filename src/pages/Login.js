@@ -51,7 +51,7 @@ const Login = () => {
             <td>password1</td>
           </tr>
           <tr>
-            <td>amandamoore2@email.com</td>
+            <td>amandamoore@email.com</td>
             <td>password2</td>
           </tr>
           <tr>
