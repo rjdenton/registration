@@ -27,6 +27,7 @@ function Register() {
     handleMajorChange,
     handleSemesterChange,
     activeTab,
+    setActiveTab
     completedCourses,
     removingWaitlistCourses,
     handleWaitlistCheckboxChange,
@@ -41,7 +42,6 @@ function Register() {
 
   const [availableSeats, setAvailableSeats] = useState({});
   const [waitlistSeats, setWaitlistSeats] = useState({});
-  const [activeTab, setActiveTab] = useState('current');  // Correctly define activeTab with setActiveTab
   const [requiredCourses, setRequiredCourses] = useState([]);
 
   // Fetch required courses for DegreeWorks
