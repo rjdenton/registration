@@ -34,7 +34,7 @@ function Register() {
     waitlistCourses
   } = useRegistration(user);
 
-    const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com",
+    const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
         transports: ['websocket']
         });
 
