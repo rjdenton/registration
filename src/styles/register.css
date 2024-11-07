@@ -6,26 +6,28 @@ body {
 
 .register-container {
   width: 100%;
-  max-width: 2000px;
+  max-width: 1600px;
   min-width: 1200px;
-  height: 80vh;
+  height: 100vh;
   background-color: #fff;
+  border-sizing: border-box;
   border-radius: 8px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  overflow-y: hidden;
+  overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: 20px;
   margin: 2rem;
   padding: 1rem;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .container {
   width: 100%;
-  max-width: 100%;
-  min-width: 400px;
-  height: 70vh;
+  max-width: 1200px;
+  min-width: 300px;
+  height: 100%;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
@@ -49,6 +51,8 @@ body {
 
 .tabs {
   display: flex;
+  justify-content: space-around;
+  padding: 0.5rem;
   background-color: #007bff;
   color: white;
   border-radius: 8px 8px 0 0;
@@ -83,11 +87,13 @@ body {
   padding: 20px;
   box-sizing: border-box;
   overflow-y: auto;
+  width: 100%;
+  height: calc(100% - 50px);
 }
 
 .form-container {
   width: 100%;
-  max-width: 8000px;
+  max-width: 600px;
   height: 100%;
   max-height: 500px;
   padding: 30px;
@@ -95,6 +101,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 0 auto;
 }
 
 .form-group {
@@ -153,21 +160,25 @@ label {
   display: flex;
   justify-content: center; /* Center the table horizontally */
   margin-top: 20px;
+  flex-grow: 1;
+  overflow-y: auto;
   overflow-x: auto;
   align-self: center;
+  max-height: calc(100vh - 300px);
 }
 
 .courses-table {
-  width: 90%;
+  width: 100%;
   max-width: 1200px; /* Optional max-width */
   margin: 0 auto; /* Center the table inside the container */
   border-collapse: collapse;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   font-size: 1.1em;
+  margin-top: 1rem;
 }
 
 .courses-table th, .courses-table td {
-  padding: 20px;
+  padding: 8px;
   text-align: center;
   border-bottom: 1px solid #ddd;
 }
@@ -197,5 +208,12 @@ label {
 @media (max-width: 768px) {
   .register-container {
     margin: 0.5rem;
+    padding: 0.5rem;
+  }
+  .form-container {
+    width: 90%;
+  }
+  .courses-table-container {
+    max-height: calc(100vh - 350px);
   }
 }
