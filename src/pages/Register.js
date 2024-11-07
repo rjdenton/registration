@@ -40,6 +40,8 @@ function Register() {
 
     const [availableSeats, setAvailableSeats] = useState({});
     const [waitlistSeats, setWaitlistSeats] = useState({});
+    const [requiredCourses, setRequiredCourses] = useState([]);
+    const [activeTab, setActiveTab] = useState('current');
 
   const fetchDegreeWorks = async () => {
     try {
@@ -54,6 +56,12 @@ function Register() {
       console.error("Error fetching DegreeWorks:", error);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === 'degreeworks') {
+      fetchDegreeWorks();
+    }
+  }, [activeTab, user]);
 
   // Use useEffect in the component to handle side effects.
   useEffect(() => {
