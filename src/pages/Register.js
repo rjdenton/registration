@@ -43,6 +43,8 @@ function Register() {
   const [availableSeats, setAvailableSeats] = useState({});
   const [waitlistSeats, setWaitlistSeats] = useState({});
   const [requiredCourses, setRequiredCourses] = useState([]);
+  const [totalCredits, setTotalCredits] = useState(0);
+  const [completedCredits, setCompletedCredits] = useState(0);
 
   // Fetch required courses for DegreeWorks
   const fetchDegreeWorks = async () => {
@@ -50,7 +52,9 @@ function Register() {
       const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
       if (response.ok) {
         const data = await response.json();
-        setRequiredCourses(data);
+        setRequiredCourses(data.courses);
+        setTotalCredits(data.total_credits);
+        setCompletedCredits(data.completed_credits);
       } else {
         console.error("Failed to fetch DegreeWorks data");
       }
@@ -65,6 +69,9 @@ function Register() {
       fetchDegreeWorks();
     }
   }, [activeTab, user]);
+
+  const progressPercentage = totalCredits ? Math.round((completedCredits / totalCredits) * 100) : 0;
+
 
   // Initial fetch for current registrations
   useEffect(() => {
@@ -318,6 +325,15 @@ function Register() {
 
             <div className="degreeworks-container">
               <h2>Degree Requirements</h2>
+              {/* Progress Bar */}
+            <div className="progress-bar">
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${progressPercentage}%` }}
+              >
+                {progressPercentage}%
+              </div>
+            </div>
               {requiredCourses.length > 0 ? (
                 <table className="degreeworks-table">
                   <thead>

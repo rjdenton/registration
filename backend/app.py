@@ -444,7 +444,6 @@ def remove_waitlist_course():
     finally:
         close_connection(connection)
 
-
 # In app.py or your routes file
 @app.route('/api/degreeworks', methods=['GET'])
 def degreeworks():
@@ -460,7 +459,7 @@ def degreeworks():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        # Fetch required courses and join with completed table to get grade if available
+        # Fetch required courses with optional grades if completed
         query = """
         SELECT c.course_id, c.name, c.credits, c.semester_available, comp.grade
         FROM courses c
@@ -470,7 +469,20 @@ def degreeworks():
         cursor.execute(query, (student_id, student_id))
         degree_courses = cursor.fetchall()
 
-        return jsonify(degree_courses)
+        # Calculate total required credits
+        total_credits = sum(course['credits'] for course in degree_courses)
+
+        # Calculate completed credits for passing grades (A, B, C)
+        completed_credits = sum(
+            course['credits'] for course in degree_courses if course['grade'] in ['A', 'B', 'C']
+        )
+
+        # Return both courses and credit information
+        return jsonify({
+            "courses": degree_courses,
+            "total_credits": total_credits,
+            "completed_credits": completed_credits
+        })
 
     except Error as e:
         print(f"Error querying the database: {e}")
@@ -478,8 +490,6 @@ def degreeworks():
 
     finally:
         close_connection(connection)
-
-
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
