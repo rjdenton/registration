@@ -52,29 +52,48 @@ function Register() {
     const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
 
   // Fetch required courses for DegreeWorks
-  const fetchDegreeWorks = async () => {
-    try {
-      const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setRequiredCourses(data.courses);
-        setStudentName(data.student_name);
-        setMajorName(data.major_name);
+  // Within fetchDegreeWorks, adjust the major and credits calculation
 
-        // Calculate GPA based on completed courses
-        const completedWithGrades = data.courses.filter(course => course.grade && gradePoints[course.grade]);
-        const totalPoints = completedWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
-        const totalCredits = completedWithGrades.reduce((acc, course) => acc + course.credits, 0);
-        const calculatedGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+const fetchDegreeWorks = async () => {
+  try {
+    const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
+    if (response.ok) {
+      const data = await response.json();
 
-        setGPA(calculatedGPA);
-      } else {
-        console.error("Failed to fetch DegreeWorks data");
-      }
-    } catch (error) {
-      console.error("Error fetching DegreeWorks:", error);
+      // Setting data from the response
+      setRequiredCourses(data.courses);
+      setStudentName(data.student_name);
+      setMajorName(data.major_name); // Ensure this matches the API response key
+
+      // Calculate total credits from required courses
+      const totalCreditsRequired = data.courses.reduce((acc, course) => acc + course.credits, 0);
+      const completedCreditsCalc = data.courses
+        .filter(course => course.grade && gradePoints[course.grade] >= 2.0) // Only include grades C or above
+        .reduce((acc, course) => acc + course.credits, 0);
+
+      // Set the calculated values
+      setTotalCredits(totalCreditsRequired);
+      setCompletedCredits(completedCreditsCalc);
+
+      // Calculate GPA for courses with grades
+      const totalPoints = data.courses
+        .filter(course => course.grade && gradePoints[course.grade])
+        .reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
+
+      const totalCreditsWithGrades = data.courses
+        .filter(course => course.grade && gradePoints[course.grade])
+        .reduce((acc, course) => acc + course.credits, 0);
+
+      const calculatedGPA = totalCreditsWithGrades > 0 ? (totalPoints / totalCreditsWithGrades).toFixed(2) : 0;
+      setGPA(calculatedGPA);
+    } else {
+      console.error("Failed to fetch DegreeWorks data");
     }
-  };
+  } catch (error) {
+    console.error("Error fetching DegreeWorks:", error);
+  }
+};
+;
 
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
