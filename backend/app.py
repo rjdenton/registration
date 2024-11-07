@@ -445,46 +445,40 @@ def remove_waitlist_course():
         close_connection(connection)
 
 
+# In app.py or your routes file
 @app.route('/api/degreeworks', methods=['GET'])
-def get_degreeworks():
+def degreeworks():
     student_id = request.args.get('student_id')
 
     if not student_id:
         return jsonify({"error": "Student ID is required"}), 400
 
-    # Fetch the student's major based on student_id
     connection = create_connection()
     if connection is None:
-        return jsonify({"error": "Database connection failed!"}), 500
+        return jsonify({"error": "Failed to connect to the database"}), 500
 
     try:
         cursor = connection.cursor(dictionary=True)
 
-        # Get the major of the student
-        cursor.execute("SELECT major_id FROM students WHERE student_id = %s", (student_id,))
-        result = cursor.fetchone()
-        if not result:
-            return jsonify({"error": "Student or major not found"}), 404
-        major_id = result['major_id']
-
-        # Get required courses for the student's major
+        # Fetch required courses and join with completed table to get grade if available
         query = """
-        SELECT c.course_id, c.name, c.credits, c.semester_available
-        FROM major_courses mc
-        JOIN courses c ON mc.course_id = c.course_id
-        WHERE mc.major_id = %s AND mc.course_type = 'Required'
+        SELECT c.course_id, c.name, c.credits, c.semester_available, comp.grade
+        FROM courses c
+        LEFT JOIN completed comp ON c.course_id = comp.course_id AND comp.student_id = %s
+        WHERE c.major_id = (SELECT major_id FROM students WHERE student_id = %s) AND c.type = 'Required'
         """
-        cursor.execute(query, (major_id,))
-        required_courses = cursor.fetchall()
+        cursor.execute(query, (student_id, student_id))
+        degree_courses = cursor.fetchall()
 
-        return jsonify(required_courses)
+        return jsonify(degree_courses)
 
     except Error as e:
         print(f"Error querying the database: {e}")
-        return jsonify({"error": "Error fetching degree requirements!"}), 500
+        return jsonify({"error": "Error fetching degree courses"}), 500
 
     finally:
         close_connection(connection)
+
 
 
 if __name__ == '__main__':
