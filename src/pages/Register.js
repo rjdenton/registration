@@ -39,6 +39,7 @@ function Register() {
         });
 
     const [availableSeats, setAvailableSeats] = useState({});
+    const [waitlistSeats, setWaitlistSeats] = useState({});
 
   // Use useEffect in the component to handle side effects.
   useEffect(() => {
