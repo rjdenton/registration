@@ -46,12 +46,10 @@ function Register() {
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
   const [majorName, setMajorName] = useState('');
-  const [gpa, setGpa] = useState(0);
+  const [gpa, setGPA] = useState(0);
+  const [studentName, setStudentName] = useState('');
 
-    const calculateGPA = () => {
     const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
-    let totalPoints = 0;
-    let totalCredits = 0;
 
     completedCourses.forEach(course => {
       const grade = course.grade;
