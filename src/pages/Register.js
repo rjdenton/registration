@@ -27,7 +27,7 @@ function Register() {
     handleMajorChange,
     handleSemesterChange,
     activeTab,
-    setActiveTab
+    setActiveTab,
     completedCourses,
     removingWaitlistCourses,
     handleWaitlistCheckboxChange,
