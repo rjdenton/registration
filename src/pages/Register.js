@@ -46,6 +46,8 @@ function Register() {
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
   const [electiveCourses, setElectiveCourses] = useState([]);
+  const [completedElectiveCredits, setCompletedElectiveCredits] = useState(0);
+
 
     const calculateGPA = () => {
       if (requiredCourses.length === 0) return 0;
@@ -74,9 +76,15 @@ function Register() {
           const data = await response.json();
           setRequiredCourses(data.required_courses);
           setElectiveCourses(data.elective_courses);
-          console.log("Elective courses:", data.elective_courses);// Set electives
           setTotalCredits(data.total_credits);
           setCompletedCredits(data.completed_credits);
+
+          // Calculate completed elective credits
+          const electiveCompleted = data.elective_courses
+            .filter(course => ['A', 'B', 'C'].includes(course.grade))
+            .reduce((acc, course) => acc + course.credits, 0);
+          setCompletedElectiveCredits(electiveCompleted);
+
         } else {
           console.error("Failed to fetch DegreeWorks data");
         }
@@ -84,6 +92,7 @@ function Register() {
         console.error("Error fetching DegreeWorks:", error);
       }
     };
+
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
@@ -93,8 +102,6 @@ function Register() {
   }, [activeTab, user]);
 
     const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
-
-
 
   // Initial fetch for current registrations
   useEffect(() => {
