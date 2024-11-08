@@ -232,6 +232,30 @@ def emit_seat_update(course_id):
     finally:
         close_connection(connection)
 
+def emit_position_update(course_id):
+    connection = create_connection()
+    try:
+        cursor = connection.cursor(dictionary=True)
+        # Query to get the current waitlist with positions calculated based on created_at order
+        cursor.execute("""
+            SELECT wait_id, student_id, course_id,
+                   ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at ASC) AS position
+            FROM waitlist
+            WHERE course_id = %s
+        """, (course_id,))
+
+        waitlist_positions = cursor.fetchall()
+
+        if waitlist_positions:
+            print(f"Emitting position update: {waitlist_positions}")  # Log emitted data
+            socketio.emit('position_update', {'course_id': course_id, 'positions': waitlist_positions})
+        else:
+            print(f"No waitlist data found for course_id: {course_id}")
+
+    except Exception as e:
+        print(f"Exception in emit_position_update: {e}")
+    finally:
+        close_connection(connection)
 
 @app.route('/api/register_course', methods=['OPTIONS', 'POST'])
 def register_course():
@@ -339,6 +363,17 @@ def unregister_course():
         print("Error: Course ID or Student ID is missing.")
         return jsonify({"error": "Course ID and Student ID are required!"}), 400
 
+@app.route('/api/unregister_course', methods=['OPTIONS', 'POST'])
+def unregister_course():
+    data = request.get_json()
+    course_id = data.get('course_id')
+    student_id = data.get('student_id')
+
+    # Ensure course_id and student_id are present
+    if not course_id or not student_id:
+        print("Error: Course ID or Student ID is missing.")
+        return jsonify({"error": "Course ID and Student ID are required!"}), 400
+
     # Establish connection
     connection = create_connection()
     if connection is None:
@@ -372,26 +407,17 @@ def unregister_course():
 
         # Commit changes to the database
         connection.commit()
+
+        # Emit seat update for the course
         emit_seat_update(course_id)
+
+        # Emit updated waitlist positions for the course
+        emit_position_update(course_id)
+
         print(f"Successfully unregistered course {course_id} for student {student_id}.")
 
-        # Calculate updated positions for all students in the waitlist for this course
-        cursor.execute("""
-            SELECT wait_id, student_id, course_id,
-                   ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at ASC) AS position
-            FROM waitlist
-            WHERE course_id = %s
-        """, (course_id,))
-        updated_positions = cursor.fetchall()
-
-        # Debugging: Print updated positions to check the data
-        print("Updated positions to emit:", updated_positions)
-
-        # Emit updated positions
-        socketio.emit('position_update', {'course_id': course_id, 'positions': updated_positions})
-        print(f"Position update emitted for course {course_id}")
-
-        return jsonify({"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
+        return jsonify(
+            {"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
 
     except Error as e:
         print(f"Error updating seats or deleting registration: {e}")

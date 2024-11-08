@@ -166,8 +166,6 @@ function Register() {
   };
 }, [setWaitlistCourses]);
 
-
-
   // Function to capitalize the user name
   function capitalizeName(name) {
     return name
