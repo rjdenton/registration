@@ -32,8 +32,7 @@ function Register() {
     removingWaitlistCourses,
     handleWaitlistCheckboxChange,
     handleRemoveFromWaitlist,
-    waitlistCourses,
-    setWaitlistCourses
+    waitlistCourses
   } = useRegistration(user);
 
   // Connect to WebSocket
@@ -106,56 +105,32 @@ function Register() {
     const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
 
   // Initial fetch for current registrations
-   // Fetch current registrations
   useEffect(() => {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
 
-useEffect(() => {
-    const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-        transports: ["websocket"]
-    });
-
+  // Handle WebSocket connection and seat updates
+  useEffect(() => {
     socket.on("connect", () => {
-        console.log("Connected to WebSocket server");
+      console.log("Connected to WebSocket server");
     });
 
-    // Listen for position updates
-    socket.on("position_update", (data) => {
-        console.log("Received position update:", data); // Inspect data structure
-        const { course_id, positions } = data;
-
-        // Check if waitlistCourses has data
-        setWaitlistCourses((prevWaitlistCourses) => {
-            if (prevWaitlistCourses.length === 0) {
-                console.warn("No waitlist courses available to update. Check initialization.");
-            }
-
-            // Map over waitlistCourses to apply the position updates
-            return prevWaitlistCourses.map((course) => {
-                if (course.course_id === course_id) {
-                    const updatedPosition = positions.find(
-                        (p) => p.student_id === course.student_id
-                    )?.position;
-
-                    if (updatedPosition !== undefined) {
-                        console.log(`Updating position for course_id ${course.course_id}, student_id ${course.student_id}: position ${updatedPosition}`);
-                        return { ...course, position: updatedPosition };
-                    }
-                }
-                return course;
-            });
-        });
+    socket.on("seat_update", (data) => {
+      console.log("Received seat update:", data);
+      setAvailableSeats((prevSeats) => ({
+        ...prevSeats,
+        [data.course_id]: data.seats_available,
+      }));
+      setWaitlistSeats((prevWaitlistSeats) => ({
+        ...prevWaitlistSeats,
+        [data.course_id]: data.waitlist_seats,
+      }));
     });
 
-    // Cleanup listeners on unmount
     return () => {
-        socket.off("position_update");
-        socket.disconnect();
+      socket.off("seat_update");
     };
-}, [setWaitlistCourses]);
-
-
+  }, [socket]);
 
   // Function to capitalize the user name
   function capitalizeName(name) {

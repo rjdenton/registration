@@ -232,57 +232,6 @@ def emit_seat_update(course_id):
     finally:
         close_connection(connection)
 
-def emit_position_update(course_id):
-    connection = create_connection()
-    try:
-        cursor = connection.cursor(dictionary=True)
-        # Query to get the current waitlist with positions calculated based on created_at order
-        cursor.execute("""
-            SELECT wait_id, student_id, course_id,
-                   ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at ASC) AS position
-            FROM waitlist
-            WHERE course_id = %s
-        """, (course_id,))
-
-        waitlist_positions = cursor.fetchall()
-
-        if waitlist_positions:
-            print(f"Emitting position update: {waitlist_positions}")  # Log emitted data
-            socketio.emit('position_update', {'course_id': course_id, 'positions': waitlist_positions})
-        else:
-            print(f"No waitlist data found for course_id: {course_id}")
-
-    except Exception as e:
-        print(f"Exception in emit_position_update: {e}")
-    finally:
-        close_connection(connection)
-
-
-def emit_waitlist_position_update(course_id):
-    print(f"Calling emit_waitlist_position_update for course_id: {course_id}")
-    connection = create_connection()
-    try:
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute(
-            """
-            SELECT student_id, ROW_NUMBER() OVER (ORDER BY created_at) AS position
-            FROM waitlist
-            WHERE course_id = %s
-            """,
-            (course_id,)
-        )
-        positions = cursor.fetchall()
-
-        # Log the data that will be emitted
-        print(f"Emitting position update for course {course_id}: {positions}")
-
-        # Emit the position update to all connected clients
-        socketio.emit('position_update', {'course_id': course_id, 'positions': positions})
-    except Exception as e:
-        print(f"Exception in emit_waitlist_position_update: {e}")
-    finally:
-        close_connection(connection)
-
 
 @app.route('/api/register_course', methods=['OPTIONS', 'POST'])
 def register_course():
@@ -378,7 +327,8 @@ def get_registered_courses():
     finally:
         close_connection(connection)
 
-@app.route('/api/unregister_course', methods=['OPTIONS', 'POST'])
+
+@app.route('/api/unregister_course', methods=['OPTIONS','POST'])
 def unregister_course():
     data = request.get_json()
     course_id = data.get('course_id')
@@ -422,19 +372,10 @@ def unregister_course():
 
         # Commit changes to the database
         connection.commit()
-
-        # Emit seat update for the course
         emit_seat_update(course_id)
-
-        # Emit updated waitlist positions for the course
-        emit_position_update(course_id)
-
-        emit_waitlist_position_update(course_id)
-
         print(f"Successfully unregistered course {course_id} for student {student_id}.")
 
-        return jsonify(
-            {"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
+        return jsonify({"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
 
     except Error as e:
         print(f"Error updating seats or deleting registration: {e}")
@@ -533,8 +474,7 @@ def get_completed_courses():
     finally:
         close_connection(connection)
 
-
-@app.route('/api/remove_waitlist_course', methods=['OPTIONS', 'POST'])
+@app.route('/api/remove_waitlist_course', methods=['OPTIONS','POST'])
 def remove_waitlist_course():
     data = request.get_json()
     course_id = data.get('course_id')
@@ -562,15 +502,12 @@ def remove_waitlist_course():
         """
         cursor.execute(update_waitlist_seats_query, (course_id,))
 
+        # Commit changes to the database
         connection.commit()
 
-        # Emit the seat and waitlist updates
         emit_seat_update(course_id)
 
-        # Emit updated positions for this course
-        emit_waitlist_position_update(course_id)
-        print(f"Emitted updated waitlist positions for course {course_id}")
-
+        print(f"Successfully removed course {course_id} from waitlist for student {student_id} and incremented waitlist seats.")
         return jsonify({"message": "Successfully removed from waitlist."}), 200
 
     except Error as e:
@@ -579,7 +516,6 @@ def remove_waitlist_course():
 
     finally:
         close_connection(connection)
-
 
 # In app.py or your routes file
 @app.route('/api/degreeworks', methods=['GET'])
