@@ -40,62 +40,37 @@ function Register() {
     transports: ["websocket"]
   });
 
-      const [availableSeats, setAvailableSeats] = useState({});
-      const [waitlistSeats, setWaitlistSeats] = useState({});
-      const [requiredCourses, setRequiredCourses] = useState([]);
-        const [totalCredits, setTotalCredits] = useState(0);
-        const [completedCredits, setCompletedCredits] = useState(0);
-        const [majorName, setMajorName] = useState('');
-        const [gpa, setGPA] = useState(0);
-        const [studentName, setStudentName] = useState('');
+  const [availableSeats, setAvailableSeats] = useState({});
+  const [waitlistSeats, setWaitlistSeats] = useState({});
+  const [requiredCourses, setRequiredCourses] = useState([]);
+  const [totalCredits, setTotalCredits] = useState(0);
+  const [completedCredits, setCompletedCredits] = useState(0);
 
-
-    const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
-
-    // Fetch required courses for DegreeWorks, including the major name
-    const fetchDegreeWorks = async () => {
-          try {
-            // Fetch DegreeWorks details for the student
-            const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
-            if (response.ok) {
-              const data = await response.json();
-
-              // Ensure we are setting required fields accurately
-              setStudentName(data.student_name || 'Unknown');
-              setMajorName(data.major_name || 'Not Selected');
-              setRequiredCourses(data.courses);
-
-              // Calculate GPA using grades in completed courses
-              const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
-              const completedCourses = data.courses.filter(course => course.grade && gradePoints[course.grade]);
-              const totalPoints = completedCourses.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
-              const completedCreditsSum = completedCourses.reduce((acc, course) => acc + course.credits, 0);
-              setGPA(completedCreditsSum > 0 ? (totalPoints / completedCreditsSum).toFixed(2) : 0);
-
-              // Update completed credits and total credits for progress bar calculation
-              setCompletedCredits(completedCreditsSum);
-              setTotalCredits(data.total_required_credits || 0);  // Ensure total required credits is set
-            } else {
-              console.error("Failed to fetch DegreeWorks data");
-            }
-          } catch (error) {
-            console.error("Error fetching DegreeWorks:", error);
-          }
-        };
-
-
-
+  // Fetch required courses for DegreeWorks
+  const fetchDegreeWorks = async () => {
+    try {
+      const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRequiredCourses(data.courses);
+        setTotalCredits(data.total_credits);
+        setCompletedCredits(data.completed_credits);
+      } else {
+        console.error("Failed to fetch DegreeWorks data");
+      }
+    } catch (error) {
+      console.error("Error fetching DegreeWorks:", error);
+    }
+  };
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
     if (activeTab === 'degreeworks') {
-        fetchDegreeWorks();
+      fetchDegreeWorks();
     }
   }, [activeTab, user]);
 
-
   const progressPercentage = totalCredits ? Math.round((completedCredits / totalCredits) * 100) : 0;
-
 
 
   // Initial fetch for current registrations
@@ -314,35 +289,54 @@ function Register() {
               </div>
             )}
 
-             {activeTab === 'degreeworks' && (
-  <div className="degreeworks-container">
-    <h2>Degree Requirements</h2>
+            {activeTab === 'degreeworks' && (
+              <div className="degreeworks-container">
+                <h2>Degree Requirements</h2>
 
-    {/* Display student info */}
-    <div className="student-info">
-      <p><strong>Name:</strong> {studentName}</p>
-      <p><strong>Major:</strong> {majorName}</p>
-      <p><strong>GPA:</strong> {gpa}</p>
-    </div>
+                {/* Progress Bar */}
+                <div className="progress-bar">
+                  <div
+                    className="progress-bar-fill"
+                    style={{ width: `${progressPercentage}%` }}
+                  >
+                    {progressPercentage}%
+                  </div>
+                </div>
 
-    {/* Progress Bar */}
-    <div className="progress-bar">
-      <div
-        className="progress-bar-fill"
-        style={{ width: `${progressPercentage}%` }}
-      >
-        {progressPercentage}%
-      </div>
-    </div>
-
-    {/* Degree Requirements Table */}
-    <table className="degreeworks-table">
-      {/* Table content as before */}
-    </table>
-  </div>
-)}
-
-
+                {requiredCourses.length > 0 ? (
+                  <table className="degreeworks-table">
+                    <thead>
+                      <tr>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Credits</th>
+                        <th>Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {requiredCourses.map((course) => (
+                        <tr
+                          key={course.course_id}
+                          className={
+                            course.grade &&
+                            (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
+                              ? 'completed-course-row'
+                              : ''
+                          }
+                        >
+                          <td>{course.course_id}</td>
+                          <td>{course.name}</td>
+                          <td>{course.credits}</td>
+                          <td>{course.grade || ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p>No degree requirements found for this major.</p>
+                )}
+              </div>
+            )}
 
         </div>
         {activeTab === 'current' && unregisteringCourses.length > 0 && (
