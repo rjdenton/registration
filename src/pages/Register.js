@@ -164,7 +164,7 @@ function Register() {
       return (
         // Your component's JSX
       );
-
+    }
 
   // Function to capitalize the user name
   function capitalizeName(name) {
