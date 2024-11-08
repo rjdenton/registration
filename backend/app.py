@@ -538,15 +538,16 @@ def degreeworks():
         cursor.execute(required_query, (student_id, student_id))
         required_courses = cursor.fetchall()
 
-        # Fetch elective courses for the student's major
+        # Fetch elective courses for the student's major with grades if completed
         elective_query = """
-        SELECT c.course_id, c.name, c.credits, c.semester_available
-        FROM courses c
-        JOIN major_courses mc ON c.course_id = mc.course_id
-        WHERE mc.major_id = (SELECT major_id FROM students WHERE student_id = %s)
-        AND mc.course_type = 'Elective'
-        """
-        cursor.execute(elective_query, (student_id,))
+                SELECT c.course_id, c.name, c.credits, c.semester_available, comp.grade
+                FROM courses c
+                JOIN major_courses mc ON c.course_id = mc.course_id
+                LEFT JOIN completed comp ON c.course_id = comp.course_id AND comp.student_id = %s
+                WHERE mc.major_id = (SELECT major_id FROM students WHERE student_id = %s)
+                AND mc.course_type = 'Elective'
+                """
+        cursor.execute(elective_query, (student_id, student_id))
         elective_courses = cursor.fetchall()
 
         # Calculate total and completed credits for required courses
