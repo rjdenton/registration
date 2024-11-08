@@ -112,18 +112,18 @@ function Register() {
   }, [user, fetchCurrentRegistrations]);
 
 useEffect(() => {
-    // Establish the socket connection
+    // Connect to the WebSocket server
     const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-        transports: ["websocket"],
+        transports: ["websocket"]
     });
 
-    // Check connection to server
     socket.on("connect", () => {
         console.log("Connected to WebSocket server");
     });
 
-    // Seat and waitlist updates for all courses
+    // Handle seat updates
     socket.on("seat_update", (data) => {
+        console.log("Received seat update:", data);
         setAvailableSeats((prevSeats) => ({
             ...prevSeats,
             [data.course_id]: data.seats_available,
@@ -134,22 +134,21 @@ useEffect(() => {
         }));
     });
 
-    // Waitlist position update
+    // Listen for position updates
     socket.on("position_update", (data) => {
-        console.log("Received position update data:", data);  // Log data received
+        console.log("Received position update:", data);  // Log full data received
 
         const { course_id, positions } = data;
 
-        // Update waitlistCourses with new positions
-        setWaitlistCourses((prevWaitlistCourses) => {
-            return prevWaitlistCourses.map((course) => {
+        setWaitlistCourses((prevWaitlistCourses) =>
+            prevWaitlistCourses.map((course) => {
                 if (course.course_id === course_id) {
-                    const newPosition = positions.find((p) => p.student_id === course.student_id)?.position || course.position;
+                    const newPosition = positions.find((p) => p.student_id === course.student_id)?.position;
                     return { ...course, position: newPosition };
                 }
                 return course;
-            });
-        });
+            })
+        );
     });
 
     // Cleanup on unmount
@@ -158,7 +157,8 @@ useEffect(() => {
         socket.off("position_update");
         socket.disconnect();
     };
-}, []);  // Ensure only runs once
+}, []);
+ // Ensure only runs once
 
 
 

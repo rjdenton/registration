@@ -262,20 +262,21 @@ def emit_waitlist_position_update(course_id):
     connection = create_connection()
     try:
         cursor = connection.cursor(dictionary=True)
-        query = """
-        SELECT student_id, ROW_NUMBER() OVER (ORDER BY created_at) AS position
-        FROM waitlist
-        WHERE course_id = %s
-        ORDER BY created_at
-        """
-        cursor.execute(query, (course_id,))
-        waitlist_positions = cursor.fetchall()
+        cursor.execute(
+            """
+            SELECT student_id, ROW_NUMBER() OVER (ORDER BY created_at) AS position
+            FROM waitlist
+            WHERE course_id = %s
+            """,
+            (course_id,)
+        )
+        positions = cursor.fetchall()
 
-        # Debugging: print the emitted data structure
-        print(f"Emitting position update for course {course_id}: {waitlist_positions}")
+        # Log the data being emitted to confirm its structure
+        print(f"Emitting position update for course {course_id}:", positions)
 
-        # Emit the position update
-        socketio.emit('position_update', {'course_id': course_id, 'positions': waitlist_positions})
+        # Emit the position update to all connected clients
+        socketio.emit('position_update', {'course_id': course_id, 'positions': positions})
     except Exception as e:
         print(f"Exception in emit_waitlist_position_update: {e}")
     finally:
