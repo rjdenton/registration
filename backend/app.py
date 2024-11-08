@@ -351,18 +351,6 @@ def get_registered_courses():
     finally:
         close_connection(connection)
 
-
-@app.route('/api/unregister_course', methods=['OPTIONS','POST'])
-def unregister_course():
-    data = request.get_json()
-    course_id = data.get('course_id')
-    student_id = data.get('student_id')
-
-    # Ensure course_id and student_id are present
-    if not course_id or not student_id:
-        print("Error: Course ID or Student ID is missing.")
-        return jsonify({"error": "Course ID and Student ID are required!"}), 400
-
 @app.route('/api/unregister_course', methods=['OPTIONS', 'POST'])
 def unregister_course():
     data = request.get_json()
