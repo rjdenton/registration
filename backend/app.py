@@ -115,28 +115,42 @@ def recommendations():
 def get_major_name():
     student_id = request.args.get('student_id')
     if not student_id:
+        print("Error: Student ID is missing")
         return jsonify({"error": "Student ID is required"}), 400
 
     connection = create_connection()
     if connection is None:
+        print("Error: Database connection failed")
         return jsonify({"error": "Failed to connect to the database"}), 500
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT major_name FROM students WHERE student_id = %s", (student_id,))
+        print(f"Fetching major name for student_id: {student_id}")
+
+        # Updated query to join students and majors tables
+        query = """
+        SELECT m.major_name
+        FROM students s
+        JOIN majors m ON s.major_id = m.id
+        WHERE s.student_id = %s
+        """
+        cursor.execute(query, (student_id,))
         result = cursor.fetchone()
+        print("Query result:", result)
 
         if result:
             return jsonify({"major_name": result['major_name']})
         else:
+            print("Error: Major name not found for student_id:", student_id)
             return jsonify({"major_name": ""}), 404
 
     except Error as e:
-        print(f"Error querying the database: {e}")
+        print(f"Database query error: {e}")
         return jsonify({"error": "Error fetching major name"}), 500
 
     finally:
         close_connection(connection)
+
 
 
 @app.route('/api/available_seats', methods=['OPTIONS','GET'])
