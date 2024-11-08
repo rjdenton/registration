@@ -112,32 +112,44 @@ function Register() {
   }, [user, fetchCurrentRegistrations]);
 
   // Handle WebSocket connection and seat updates
-  useEffect(() => {
+  // WebSocket handler for position updates
+useEffect(() => {
     const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
       transports: ["websocket"]
     });
 
-    socket.on("connect", () => {
-      console.log("Connected to WebSocket server");
+    // Handle seat and position updates
+    socket.on("seat_update", (data) => {
+        setAvailableSeats((prevSeats) => ({
+            ...prevSeats,
+            [data.course_id]: data.seats_available,
+        }));
+        setWaitlistSeats((prevWaitlistSeats) => ({
+            ...prevWaitlistSeats,
+            [data.course_id]: data.waitlist_seats,
+        }));
     });
 
-    socket.on("seat_update", (data) => {
-      console.log("Received seat update:", data);
-      setAvailableSeats((prevSeats) => ({
-        ...prevSeats,
-        [data.course_id]: data.seats_available,
-      }));
-      setWaitlistSeats((prevWaitlistSeats) => ({
-        ...prevWaitlistSeats,
-        [data.course_id]: data.waitlist_seats,
-      }));
+    socket.on("position_update", (data) => {
+        const { course_id, positions } = data;
+        setWaitlistCourses((prevWaitlistCourses) =>
+            prevWaitlistCourses.map((course) =>
+                course.course_id === course_id
+                    ? {
+                        ...course,
+                        position: positions.find((p) => p.student_id === course.student_id)?.position,
+                    }
+                    : course
+            )
+        );
     });
 
     return () => {
-      socket.off("seat_update");
-      socket.disconnect();
+        socket.off("seat_update");
+        socket.off("position_update");
+        socket.disconnect();
     };
-  }, []);
+}, []);
 
   // Listen for position updates on waitlist
   useEffect(() => {

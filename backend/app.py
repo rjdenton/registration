@@ -257,6 +257,29 @@ def emit_position_update(course_id):
     finally:
         close_connection(connection)
 
+        def emit_waitlist_position_update(course_id):
+            connection = create_connection()
+            try:
+                cursor = connection.cursor(dictionary=True)
+
+                # Get students on the waitlist ordered by `created_at`
+                query = """
+                SELECT student_id, ROW_NUMBER() OVER (ORDER BY created_at) AS position
+                FROM waitlist
+                WHERE course_id = %s
+                ORDER BY created_at
+                """
+                cursor.execute(query, (course_id,))
+                waitlist_positions = cursor.fetchall()
+
+                # Emit the position update to all connected clients for this course
+                socketio.emit('position_update', {'course_id': course_id, 'positions': waitlist_positions})
+
+            except Exception as e:
+                print(f"Exception in emit_waitlist_position_update: {e}")
+            finally:
+                close_connection(connection)
+
 @app.route('/api/register_course', methods=['OPTIONS', 'POST'])
 def register_course():
     data = request.json
@@ -401,6 +424,8 @@ def unregister_course():
 
         # Emit updated waitlist positions for the course
         emit_position_update(course_id)
+
+        emit_waitlist_position_update(course_id)
 
         print(f"Successfully unregistered course {course_id} for student {student_id}.")
 
