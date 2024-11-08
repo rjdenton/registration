@@ -114,7 +114,7 @@ const handleRemoveFromWaitlist = async () => {
 
   for (let courseId of removingWaitlistCourses) {
     try {
-      const response = await fetch('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/remove_waitlist_course', {
+      const response = await fetch('/api/remove_waitlist_course', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
