@@ -135,16 +135,13 @@ useEffect(() => {
 
     // Listen for position updates
     socket.on("position_update", (data) => {
-        console.log("Received position update:", data);
+        console.log("Received position update:", data); // Log the data structure for inspection
         const { course_id, positions } = data;
 
-        // Log each position for debugging
-        positions.forEach(pos => console.log(`Student ID: ${pos.student_id}, Position: ${pos.position}`));
-
-        // Update waitlistCourses with new positions
-        setWaitlistCourses((prevWaitlistCourses) =>
-            prevWaitlistCourses.map((course) => {
-                // Ensure that student_id exists in both course and positions
+        // Update waitlistCourses with new positions, using a functional update to ensure fresh state
+        setWaitlistCourses((prevWaitlistCourses) => {
+            // Map over current courses to find matches for the updated course_id
+            return prevWaitlistCourses.map((course) => {
                 if (course.course_id === course_id) {
                     const updatedPosition = positions.find((p) => p.student_id === course.student_id)?.position;
 
@@ -154,8 +151,8 @@ useEffect(() => {
                     }
                 }
                 return course;
-            })
-        );
+            });
+        });
     });
 
     // Cleanup listeners on unmount
@@ -165,6 +162,7 @@ useEffect(() => {
         socket.disconnect();
     };
 }, [setWaitlistCourses]);
+
 
   // Function to capitalize the user name
   function capitalizeName(name) {
