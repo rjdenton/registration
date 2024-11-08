@@ -211,19 +211,18 @@ body {
   color: #333;
 }
 
-.electives-section {
-  margin-top: 20px;
-}
-
-.electives-table {
+.degreeworks-table,
+.electives-section .degreeworks-table {
   width: 100%;
-  margin-top: 10px;
   border-collapse: collapse;
+  margin-top: 10px;
 }
 
-.electives-table th, .electives-table td {
+.degreeworks-table th, .degreeworks-table td {
   padding: 8px;
   text-align: left;
+  border: 1px solid #ddd;
 }
+
 
 

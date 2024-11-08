@@ -92,7 +92,8 @@ function Register() {
     }
   }, [activeTab, user]);
 
-  const progressPercentage = totalCredits ? Math.round((completedCredits / totalCredits) * 100) : 0;
+    const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
+
 
 
   // Initial fetch for current registrations
@@ -360,10 +361,11 @@ function Register() {
                   </table>
                 )}
 
+                {/* Electives Section */}
                 {electiveCourses.length > 0 && (
                   <div className="electives-section">
-                    <h3>Elective Courses</h3>
-                    <table className="electives-table">
+                    <h3>Elective Courses (9 credits required)</h3>
+                    <table className="degreeworks-table">
                       <thead>
                         <tr>
                           <th>Course ID</th>
@@ -383,6 +385,7 @@ function Register() {
                     </table>
                   </div>
                 )}
+
               </div>
             )}
 
