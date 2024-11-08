@@ -134,27 +134,31 @@ useEffect(() => {
         }));
     });
 
-    // Listen for position updates and handle each position update received
     socket.on("position_update", (data) => {
-        console.log("Received position update:", data); // Log full data for structure inspection
-        const { course_id, positions } = data;
+    console.log("Received position update:", data); // Log the entire data for inspection
+    const { course_id, positions } = data;
 
-        // Update waitlistCourses with new positions using a functional update to ensure fresh state
-        setWaitlistCourses((prevWaitlistCourses) =>
-            prevWaitlistCourses.map((course) => {
-                if (course.course_id === course_id) {
-                    // Find updated position for the specific student in this course
-                    const updatedPosition = positions.find((p) => p.student_id === course.student_id)?.position;
+    // Update waitlistCourses with new positions
+    setWaitlistCourses((prevWaitlistCourses) =>
+        prevWaitlistCourses.map((course) => {
+            if (course.course_id === course_id) {
+                // Find updated position for this specific student
+                const updatedPosition = positions.find(
+                    (p) => p.student_id === course.student_id
+                )?.position;
 
-                    if (updatedPosition !== undefined) {
-                        console.log(`Updating position for course_id ${course.course_id}, student_id ${course.student_id}: position ${updatedPosition}`);
-                        return { ...course, position: updatedPosition };
-                    }
+                if (updatedPosition !== undefined) {
+                    console.log(`Updating position for course_id ${course.course_id}, student_id ${course.student_id}: position ${updatedPosition}`);
+                    return { ...course, position: updatedPosition };
                 }
-                return course;
-            })
-        );
-    });
+            }
+            return course;
+        })
+    );
+
+    // Log the updated waitlistCourses to confirm changes
+    setTimeout(() => console.log("Updated waitlistCourses:", waitlistCourses), 0);
+});
 
     // Cleanup listeners on component unmount
     return () => {
