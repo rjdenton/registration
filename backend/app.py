@@ -375,7 +375,7 @@ def unregister_course():
         emit_seat_update(course_id)
         print(f"Successfully unregistered course {course_id} for student {student_id}.")
 
-        # Fetch updated positions for the course waitlist
+        # Calculate updated positions for all students in the waitlist for this course
         cursor.execute("""
             SELECT wait_id, student_id, course_id,
                    ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at ASC) AS position
@@ -384,7 +384,10 @@ def unregister_course():
         """, (course_id,))
         updated_positions = cursor.fetchall()
 
-        # Emit the updated positions
+        # Debugging: Print updated positions to check the data
+        print("Updated positions to emit:", updated_positions)
+
+        # Emit updated positions
         socketio.emit('position_update', {'course_id': course_id, 'positions': updated_positions})
         print(f"Position update emitted for course {course_id}")
 

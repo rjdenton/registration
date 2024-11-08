@@ -141,32 +141,31 @@ function Register() {
 
   // Listen for position updates on waitlist
   useEffect(() => {
-      const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-        transports: ["websocket"]
-      });
+  const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
+    transports: ["websocket"]
+  });
 
-      socket.on("position_update", (data) => {
-        const { course_id, positions } = data;
-        console.log("Received position update for course:", course_id);
+  socket.on("position_update", (data) => {
+    const { course_id, positions } = data;
+    console.log("Received position update for course:", course_id, positions);
 
-        // Update positions in waitlistCourses state
-        setWaitlistCourses((prevWaitlistCourses) =>
-          prevWaitlistCourses.map((course) =>
-            course.course_id === course_id
-              ? {
-                  ...course,
-                  position: positions.find((p) => p.student_id === course.student_id)?.position,
-                }
-              : course
-          )
-        );
-      });
+    // Update positions in waitlistCourses state
+    setWaitlistCourses((prevWaitlistCourses) =>
+      prevWaitlistCourses.map((course) => {
+        const updatedPosition = positions.find((p) => p.student_id === course.student_id);
+        return course.course_id === course_id && updatedPosition
+          ? { ...course, position: updatedPosition.position }
+          : course;
+      })
+    );
+  });
 
-      return () => {
-        socket.off("position_update");
-        socket.disconnect();
-      };
-    }, [setWaitlistCourses]);
+  return () => {
+    socket.off("position_update");
+    socket.disconnect();
+  };
+}, [setWaitlistCourses]);
+
 
 
   // Function to capitalize the user name
