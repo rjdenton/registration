@@ -166,7 +166,7 @@ function Register() {
   return (
     <div className="register-container">
           <img
-            src="path_to_your_image.png"  // Replace with the actual path to your image
+            src="../images/gcsu-logo.png"  // Replace with the actual path to your image
             alt="User"
             className="welcome-image"
           />
