@@ -211,3 +211,19 @@ body {
   color: #333;
 }
 
+.electives-section {
+  margin-top: 20px;
+}
+
+.electives-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+.electives-table th, .electives-table td {
+  padding: 8px;
+  text-align: left;
+}
+
+

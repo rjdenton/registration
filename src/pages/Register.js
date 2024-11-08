@@ -45,6 +45,7 @@ function Register() {
   const [requiredCourses, setRequiredCourses] = useState([]);
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
+  const [electiveCourses, setElectiveCourses] = useState([]);
 
     const calculateGPA = () => {
       if (requiredCourses.length === 0) return 0;
@@ -66,21 +67,22 @@ function Register() {
     };
 
   // Fetch required courses for DegreeWorks
-  const fetchDegreeWorks = async () => {
-    try {
-      const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setRequiredCourses(data.courses);
-        setTotalCredits(data.total_credits);
-        setCompletedCredits(data.completed_credits);
-      } else {
-        console.error("Failed to fetch DegreeWorks data");
+      const fetchDegreeWorks = async () => {
+      try {
+        const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRequiredCourses(data.required_courses);
+          setElectiveCourses(data.elective_courses);  // Set electives
+          setTotalCredits(data.total_credits);
+          setCompletedCredits(data.completed_credits);
+        } else {
+          console.error("Failed to fetch DegreeWorks data");
+        }
+      } catch (error) {
+        console.error("Error fetching DegreeWorks:", error);
       }
-    } catch (error) {
-      console.error("Error fetching DegreeWorks:", error);
-    }
-  };
+    };
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
@@ -326,7 +328,7 @@ function Register() {
                   </div>
                 </div>
 
-                {requiredCourses.length > 0 ? (
+                {requiredCourses.length > 0 && (
                   <table className="degreeworks-table">
                     <thead>
                       <tr>
@@ -355,8 +357,30 @@ function Register() {
                       ))}
                     </tbody>
                   </table>
-                ) : (
-                  <p>No degree requirements found for this major.</p>
+                )}
+
+                {electiveCourses.length > 0 && (
+                  <div className="electives-section">
+                    <h3>Elective Courses</h3>
+                    <table className="electives-table">
+                      <thead>
+                        <tr>
+                          <th>Course ID</th>
+                          <th>Course Name</th>
+                          <th>Credits</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {electiveCourses.map((course) => (
+                          <tr key={course.course_id}>
+                            <td>{course.course_id}</td>
+                            <td>{course.name}</td>
+                            <td>{course.credits}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             )}

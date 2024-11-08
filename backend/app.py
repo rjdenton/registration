@@ -460,26 +460,32 @@ def degreeworks():
         cursor = connection.cursor(dictionary=True)
 
         # Fetch required courses with optional grades if completed
-        query = """
+        required_query = """
         SELECT c.course_id, c.name, c.credits, c.semester_available, comp.grade
         FROM courses c
         LEFT JOIN completed comp ON c.course_id = comp.course_id AND comp.student_id = %s
         WHERE c.major_id = (SELECT major_id FROM students WHERE student_id = %s) AND c.type = 'Required'
         """
-        cursor.execute(query, (student_id, student_id))
-        degree_courses = cursor.fetchall()
+        cursor.execute(required_query, (student_id, student_id))
+        required_courses = cursor.fetchall()
 
-        # Calculate total required credits
-        total_credits = sum(course['credits'] for course in degree_courses)
+        # Fetch elective courses for the student's major
+        elective_query = """
+        SELECT c.course_id, c.name, c.credits, c.semester_available
+        FROM courses c
+        WHERE c.major_id = (SELECT major_id FROM students WHERE student_id = %s) AND c.type = 'Elective'
+        """
+        cursor.execute(elective_query, (student_id,))
+        elective_courses = cursor.fetchall()
 
-        # Calculate completed credits for passing grades (A, B, C)
-        completed_credits = sum(
-            course['credits'] for course in degree_courses if course['grade'] in ['A', 'B', 'C']
-        )
+        # Calculate total and completed credits for required courses
+        total_credits = sum(course['credits'] for course in required_courses)
+        completed_credits = sum(course['credits'] for course in required_courses if course['grade'] in ['A', 'B', 'C'])
 
-        # Return both courses and credit information
+        # Return required and elective courses
         return jsonify({
-            "courses": degree_courses,
+            "required_courses": required_courses,
+            "elective_courses": elective_courses,
             "total_credits": total_credits,
             "completed_credits": completed_credits
         })
@@ -490,6 +496,7 @@ def degreeworks():
 
     finally:
         close_connection(connection)
+
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
