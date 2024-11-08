@@ -95,29 +95,6 @@ function Register() {
       }
     };
 
-      useEffect(() => {
-      const fetchMajorName = async () => {
-            try {
-              const response = await fetch(`/api/major?student_id=${user.student_id}`);
-              if (response.ok) {
-                const data = await response.json();
-                setMajorName(data.major_name || ''); // Set fetched major name or empty if not found
-                console.log("Fetched major name:", data.major_name);
-              } else {
-                console.error("Failed to fetch major name, response not OK");
-              }
-            } catch (error) {
-              console.error("Error fetching major name:", error);
-            }
-          };
-
-          if (user?.student_id) {
-            fetchMajorName();
-          }
-        }, [user]);
-
-
-
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
     if (activeTab === 'degreeworks') {

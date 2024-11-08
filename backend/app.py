@@ -303,9 +303,10 @@ def get_registered_courses():
         cursor.execute(query_reg, (student_id,))
         registered_courses = cursor.fetchall()
 
-        # Query to fetch waitlisted courses
+        # Query to fetch waitlisted courses with dynamic position based on `created_at`
         query_waitlist = """
-        SELECT c.course_id, c.name, c.credits, w.wait_id
+        SELECT c.course_id, c.name, c.credits, w.wait_id,
+               ROW_NUMBER() OVER (PARTITION BY w.course_id ORDER BY w.created_at) AS position
         FROM waitlist w
         JOIN courses c ON w.course_id = c.course_id
         WHERE w.student_id = %s
@@ -325,8 +326,6 @@ def get_registered_courses():
 
     finally:
         close_connection(connection)
-
-
 
 @app.route('/api/unregister_course', methods=['OPTIONS','POST'])
 def unregister_course():
