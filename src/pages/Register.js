@@ -258,52 +258,51 @@ function Register() {
             )}
 
           {activeTab === 'waitlist' && (
-              <div className="waitlist-courses">
-                <h2>Waitlisted Courses</h2>
-                {waitlistCourses.length > 0 ? (
-                  <div>
-                    <table className="courses-table full-width styled-table">
-                      <thead>
-                        <tr>
-                          <th>Select</th> {/* Checkbox column header */}
-                          <th>Course ID</th>
-                          <th>Course Name</th>
-                          <th>Credits</th>
-                          <th>Waitlist Position</th>
+            <div className="waitlist-courses">
+              <h2>Waitlisted Courses</h2>
+              {waitlistCourses.length > 0 ? (
+                <div>
+                  <table className="courses-table full-width styled-table">
+                    <thead>
+                      <tr>
+                        <th>Select</th>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Credits</th>
+                        <th>Waitlist Position</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {waitlistCourses.map((course) => (
+                        <tr key={course.course_id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={removingWaitlistCourses.includes(course.course_id)}
+                              onChange={() => handleWaitlistCheckboxChange(course.course_id)}
+                            />
+                          </td>
+                          <td>{course.course_id}</td>
+                          <td>{course.name}</td>
+                          <td>{course.credits}</td>
+                          <td>{course.position}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {waitlistCourses.map((course) => (
-                          <tr key={course.course_id}>
-                            <td>
-                              <input
-                                type="checkbox"
-                                checked={removingWaitlistCourses.includes(course.course_id)}
-                                onChange={() => handleWaitlistCheckboxChange(course.course_id)}
-                              />
-                            </td>
-                            <td>{course.course_id}</td>
-                            <td>{course.name}</td>
-                            <td>{course.credits}</td>
-                            <td>{course.position}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {/* Remove selected button */}
-                    {removingWaitlistCourses.length > 0 && (
-                      <div className="submit-container">
-                        <button type="button" onClick={handleRemoveFromWaitlist} className="remove-btn">
-                          Remove Selected Courses from Waitlist
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="no-courses-message">No courses currently in the waitlist.</p>
-                )}
-              </div>
-            )}
+                      ))}
+                    </tbody>
+                  </table>
+                  {removingWaitlistCourses.length > 0 && (
+                    <div className="submit-container">
+                      <button type="button" onClick={handleRemoveFromWaitlist} className="remove-btn">
+                        Remove Selected Courses from Waitlist
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="no-courses-message">No courses currently in the waitlist.</p>
+              )}
+            </div>
+          )}
 
 
 
