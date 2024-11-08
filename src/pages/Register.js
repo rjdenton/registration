@@ -135,7 +135,7 @@ useEffect(() => {
 
     // Listen for position updates
     socket.on("position_update", (data) => {
-        console.log("Received position update:", data); // Log entire data
+        console.log("Received position update:", data);
         const { course_id, positions } = data;
 
         // Log each position for debugging
@@ -144,10 +144,14 @@ useEffect(() => {
         // Update waitlistCourses with new positions
         setWaitlistCourses((prevWaitlistCourses) =>
             prevWaitlistCourses.map((course) => {
+                // Ensure that student_id exists in both course and positions
                 if (course.course_id === course_id) {
-                    const newPosition = positions.find((p) => p.student_id === course.student_id)?.position;
-                    console.log(`Updating course_id ${course.course_id} for student_id ${course.student_id} to position ${newPosition}`); // Log each update
-                    return { ...course, position: newPosition || '' };
+                    const updatedPosition = positions.find((p) => p.student_id === course.student_id)?.position;
+
+                    if (updatedPosition !== undefined) {
+                        console.log(`Updating course_id ${course.course_id} for student_id ${course.student_id} to position ${updatedPosition}`);
+                        return { ...course, position: updatedPosition };
+                    }
                 }
                 return course;
             })
