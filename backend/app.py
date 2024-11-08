@@ -473,7 +473,9 @@ def degreeworks():
         elective_query = """
         SELECT c.course_id, c.name, c.credits, c.semester_available
         FROM courses c
-        WHERE c.major_id = (SELECT major_id FROM students WHERE student_id = %s) AND c.type = 'Elective'
+        JOIN major_courses mc ON c.course_id = mc.course_id
+        WHERE mc.major_id = (SELECT major_id FROM students WHERE student_id = %s)
+        AND mc.course_type = 'Elective'
         """
         cursor.execute(elective_query, (student_id,))
         elective_courses = cursor.fetchall()

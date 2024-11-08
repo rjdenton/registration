@@ -73,7 +73,8 @@ function Register() {
         if (response.ok) {
           const data = await response.json();
           setRequiredCourses(data.required_courses);
-          setElectiveCourses(data.elective_courses);  // Set electives
+          setElectiveCourses(data.elective_courses);
+          console.log("Elective courses:", data.elective_courses);// Set electives
           setTotalCredits(data.total_credits);
           setCompletedCredits(data.completed_credits);
         } else {
