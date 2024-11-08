@@ -112,15 +112,17 @@ function Register() {
   }, [user, fetchCurrentRegistrations]);
 
 useEffect(() => {
+    // Establish the socket connection
     const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-      transports: ["websocket"]
+        transports: ["websocket"],
     });
 
-    // Log socket connection success
+    // Check connection to server
     socket.on("connect", () => {
         console.log("Connected to WebSocket server");
     });
 
+    // Seat and waitlist updates for all courses
     socket.on("seat_update", (data) => {
         setAvailableSeats((prevSeats) => ({
             ...prevSeats,
@@ -132,31 +134,33 @@ useEffect(() => {
         }));
     });
 
-    // Waitlist position updates
+    // Waitlist position update
     socket.on("position_update", (data) => {
-        console.log("Received position update:", data);  // Debugging line to log received data
+        console.log("Received position update data:", data);  // Log data received
 
         const { course_id, positions } = data;
 
-        // Update positions in waitlistCourses
-        setWaitlistCourses((prevWaitlistCourses) =>
-            prevWaitlistCourses.map((course) =>
-                course.course_id === course_id
-                    ? {
-                        ...course,
-                        position: positions.find((p) => p.student_id === course.student_id)?.position,
-                    }
-                    : course
-            )
-        );
+        // Update waitlistCourses with new positions
+        setWaitlistCourses((prevWaitlistCourses) => {
+            return prevWaitlistCourses.map((course) => {
+                if (course.course_id === course_id) {
+                    const newPosition = positions.find((p) => p.student_id === course.student_id)?.position || course.position;
+                    return { ...course, position: newPosition };
+                }
+                return course;
+            });
+        });
     });
 
+    // Cleanup on unmount
     return () => {
         socket.off("seat_update");
         socket.off("position_update");
         socket.disconnect();
     };
-}, []);
+}, []);  // Ensure only runs once
+
+
 
 
   // Listen for position updates on waitlist
