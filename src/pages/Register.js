@@ -46,6 +46,25 @@ function Register() {
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
 
+    const calculateGPA = () => {
+      if (requiredCourses.length === 0) return 0;
+
+      const gradePoints = {
+        A: 4.0,
+        B: 3.0,
+        C: 2.0,
+        D: 1.0,
+        F: 0.0,
+      };
+
+      // Filter completed courses and calculate GPA
+      const completedCoursesWithGrades = requiredCourses.filter((course) => course.grade && gradePoints[course.grade] !== undefined);
+      const totalPoints = completedCoursesWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
+      const totalCredits = completedCoursesWithGrades.reduce((acc, course) => acc + course.credits, 0);
+
+      return totalCredits ? (totalPoints / totalCredits).toFixed(2) : 0;
+    };
+
   // Fetch required courses for DegreeWorks
   const fetchDegreeWorks = async () => {
     try {
@@ -292,6 +311,10 @@ function Register() {
             {activeTab === 'degreeworks' && (
               <div className="degreeworks-container">
                 <h2>Degree Requirements</h2>
+
+                <div className="gpa-display">
+                    <strong>GPA: {calculateGPA()}</strong>
+                </div>
 
                 {/* Progress Bar */}
                 <div className="progress-bar">

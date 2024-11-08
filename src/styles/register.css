@@ -203,3 +203,10 @@ body {
 .completed-course-row {
   background-color: #d4edda; /* Light green background for completed courses */
 }
+
+.gpa-display {
+  text-align: center;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  color: #333;
+}
