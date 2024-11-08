@@ -106,12 +106,17 @@ function Register() {
     const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
 
   // Initial fetch for current registrations
+   // Fetch current registrations
   useEffect(() => {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
 
   // Handle WebSocket connection and seat updates
   useEffect(() => {
+    const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
+      transports: ["websocket"]
+    });
+
     socket.on("connect", () => {
       console.log("Connected to WebSocket server");
     });
@@ -130,41 +135,38 @@ function Register() {
 
     return () => {
       socket.off("seat_update");
+      socket.disconnect();
     };
-  }, [socket]);
+  }, []);
 
+  // Listen for position updates on waitlist
   useEffect(() => {
-        // Connect to WebSocket and listen for position updates
-        const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-          transports: ["websocket"]
-        });
+    const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
+      transports: ["websocket"]
+    });
 
-        socket.on("position_update", (data) => {
-          const { course_id, positions } = data;
-          console.log("Received position update for course:", course_id);
+    socket.on("position_update", (data) => {
+      const { course_id, positions } = data;
+      console.log("Received position update for course:", course_id);
 
-          // Update positions in waitlistCourses state
-          setWaitlistCourses((prevWaitlistCourses) =>
-            prevWaitlistCourses.map((course) =>
-              course.course_id === course_id
-                ? {
-                    ...course,
-                    position: positions.find((p) => p.student_id === course.student_id)?.position,
-                  }
-                : course
-            )
-          );
-        });
-
-        return () => {
-          socket.disconnect();
-        };
-      }, [setWaitlistCourses]); // Dependency on setWaitlistCourses from useRegistration
-
-      return (
-        // Your component's JSX
+      // Update positions in waitlistCourses state
+      setWaitlistCourses((prevWaitlistCourses) =>
+        prevWaitlistCourses.map((course) =>
+          course.course_id === course_id
+            ? {
+                ...course,
+                position: positions.find((p) => p.student_id === course.student_id)?.position,
+              }
+            : course
+        )
       );
-    }
+    });
+
+    return () => {
+      socket.off("position_update");
+      socket.disconnect();
+    };
+  }, [setWaitlistCourses]);
 
   // Function to capitalize the user name
   function capitalizeName(name) {
