@@ -118,7 +118,6 @@ useEffect(() => {
       transports: ["websocket"]
     });
 
-    // Handle seat and position updates
     socket.on("seat_update", (data) => {
         setAvailableSeats((prevSeats) => ({
             ...prevSeats,
@@ -132,6 +131,9 @@ useEffect(() => {
 
     socket.on("position_update", (data) => {
         const { course_id, positions } = data;
+        console.log("Received position update:", positions);
+
+        // Update waitlist courses with new positions
         setWaitlistCourses((prevWaitlistCourses) =>
             prevWaitlistCourses.map((course) =>
                 course.course_id === course_id
