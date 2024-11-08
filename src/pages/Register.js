@@ -54,29 +54,34 @@ function Register() {
 
     // Fetch required courses for DegreeWorks, including the major name
     const fetchDegreeWorks = async () => {
-        try {
-            const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
-            if (response.ok) {
-                const data = await response.json();
-                setRequiredCourses(data.courses);
-                setStudentName(data.student_name);
-                setMajorName(data.major_name);
+  try {
+    console.log("Fetching DegreeWorks data..."); // Debug log
+    const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
+    if (response.ok) {
+      const data = await response.json();
+      console.log("DegreeWorks data received:", data); // Debug log
+      setRequiredCourses(data.courses || []);
+      setStudentName(data.student_name || 'Unknown');
+      setMajorName(data.major_name || 'Not Selected');
 
-                // GPA Calculation
-                const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
-                const completedWithGrades = data.courses.filter(course => course.grade && gradePoints[course.grade]);
-                const totalPoints = completedWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
-                const totalCredits = completedWithGrades.reduce((acc, course) => acc + course.credits, 0);
-                const calculatedGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+      // GPA Calculation
+      const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
+      const completedWithGrades = data.courses.filter(course => course.grade && gradePoints[course.grade]);
+      const totalPoints = completedWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
+      const totalCredits = completedWithGrades.reduce((acc, course) => acc + course.credits, 0);
+      const calculatedGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
 
-                setGPA(calculatedGPA);
-            } else {
-                console.error("Failed to fetch DegreeWorks data");
-            }
-        } catch (error) {
-            console.error("Error fetching DegreeWorks:", error);
-        }
-    };
+      setGPA(calculatedGPA);
+      setTotalCredits(totalCredits);
+      setCompletedCredits(completedWithGrades.reduce((acc, course) => acc + course.credits, 0));
+    } else {
+      console.error("Failed to fetch DegreeWorks data: ", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error fetching DegreeWorks:", error);
+  }
+};
+
 
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
@@ -307,61 +312,65 @@ function Register() {
             )}
 
              {activeTab === 'degreeworks' && (
-                <div className="degreeworks-container">
-                    <h2>Degree Requirements</h2>
+              <div className="degreeworks-container">
+                <h2>Degree Requirements</h2>
 
-                    {/* Student Info and GPA */}
-                    <div className="student-info">
-                        <p><strong>Name:</strong> {capitalizeName(studentName)}</p>
-                        <p><strong>Major:</strong> {majorName}</p>
-                        <p><strong>GPA:</strong> {gpa}</p>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="progress-bar">
-                        <div
-                            className="progress-bar-fill"
-                            style={{ width: `${progressPercentage}%` }}
-                        >
-                            {progressPercentage}%
-                        </div>
-                    </div>
-
-                    {requiredCourses.length > 0 ? (
-                        <table className="degreeworks-table">
-                            <thead>
-                                <tr>
-                                    <th>Course ID</th>
-                                    <th>Course Name</th>
-                                    <th>Credits</th>
-                                    <th>Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {requiredCourses.map(course => (
-                                    <tr
-                                        key={course.course_id}
-                                        className={
-                                            course.grade && (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
-                                                ? 'completed-course-row'
-                                                : course.grade && (course.grade === 'D' || course.grade === 'F')
-                                                ? 'unsatisfactory-course-row'
-                                                : ''
-                                        }
-                                    >
-                                        <td>{course.course_id}</td>
-                                        <td>{course.name}</td>
-                                        <td>{course.credits}</td>
-                                        <td>{course.grade || ''}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p>No degree requirements found for this major.</p>
-                    )}
+                {/* Check if student information is available */}
+                <div className="student-info">
+                  <p><strong>Name:</strong> {studentName || 'Loading...'}</p>
+                  <p><strong>Major:</strong> {majorName || 'Not Selected'}</p>
+                  <p><strong>GPA:</strong> {gpa || 'N/A'}</p>
                 </div>
+
+                {/* Display progress bar only if credits data is available */}
+                {totalCredits > 0 && (
+                  <div className="progress-bar">
+                    <div
+                      className="progress-bar-fill"
+                      style={{ width: `${Math.round((completedCredits / totalCredits) * 100)}%` }}
+                    >
+                      {Math.round((completedCredits / totalCredits) * 100)}%
+                    </div>
+                  </div>
+                )}
+
+                {/* Check if requiredCourses is available */}
+                {requiredCourses.length > 0 ? (
+                  <table className="degreeworks-table">
+                    <thead>
+                      <tr>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Credits</th>
+                        <th>Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {requiredCourses.map(course => (
+                        <tr
+                          key={course.course_id}
+                          className={
+                            course.grade && ['A', 'B', 'C'].includes(course.grade)
+                              ? 'completed-course-row'  // Green for satisfactory grades
+                              : course.grade && ['D', 'F'].includes(course.grade)
+                              ? 'unsatisfactory-course-row' // Red for unsatisfactory grades
+                              : ''
+                          }
+                        >
+                          <td>{course.course_id}</td>
+                          <td>{course.name}</td>
+                          <td>{course.credits}</td>
+                          <td>{course.grade || ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p>No degree requirements found for this major.</p>
+                )}
+              </div>
             )}
+
 
         </div>
         {activeTab === 'current' && unregisteringCourses.length > 0 && (
