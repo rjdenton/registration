@@ -112,7 +112,7 @@ function Register() {
   }, [user, fetchCurrentRegistrations]);
 
 useEffect(() => {
-    // Connect to the WebSocket server
+    // Ensure connection to WebSocket
     const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
         transports: ["websocket"]
     });
@@ -121,7 +121,7 @@ useEffect(() => {
         console.log("Connected to WebSocket server");
     });
 
-    // Handle seat updates
+    // Seat update event
     socket.on("seat_update", (data) => {
         console.log("Received seat update:", data);
         setAvailableSeats((prevSeats) => ({
@@ -134,9 +134,9 @@ useEffect(() => {
         }));
     });
 
-    // Listen for position updates
+    // Position update event
     socket.on("position_update", (data) => {
-        console.log("Received position update:", data);  // Log full data received
+        console.log("Received position update:", data);  // Log data for debugging
 
         const { course_id, positions } = data;
 
@@ -151,13 +151,14 @@ useEffect(() => {
         );
     });
 
-    // Cleanup on unmount
+    // Cleanup listeners on unmount
     return () => {
         socket.off("seat_update");
         socket.off("position_update");
         socket.disconnect();
     };
 }, []);
+
  // Ensure only runs once
 
 

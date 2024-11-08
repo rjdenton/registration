@@ -259,6 +259,7 @@ def emit_position_update(course_id):
 
 
 def emit_waitlist_position_update(course_id):
+    print(f"Calling emit_waitlist_position_update for course_id: {course_id}")
     connection = create_connection()
     try:
         cursor = connection.cursor(dictionary=True)
@@ -272,8 +273,8 @@ def emit_waitlist_position_update(course_id):
         )
         positions = cursor.fetchall()
 
-        # Log the data being emitted to confirm its structure
-        print(f"Emitting position update for course {course_id}:", positions)
+        # Log the data that will be emitted
+        print(f"Emitting position update for course {course_id}: {positions}")
 
         # Emit the position update to all connected clients
         socketio.emit('position_update', {'course_id': course_id, 'positions': positions})
