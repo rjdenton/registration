@@ -46,10 +46,11 @@ def login():
 
         try:
             cursor = connection.cursor(dictionary=True)
+            # Corrected the join to use majors.major_id
             cursor.execute("""
                 SELECT m.major_name
-                FROM majors m
-                JOIN students s ON s.major_id = m.id
+                FROM students s
+                JOIN majors m ON s.major_id = m.major_id
                 WHERE s.student_id = %s
             """, (user_info['student_id'],))
             major_result = cursor.fetchone()
