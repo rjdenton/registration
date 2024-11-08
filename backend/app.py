@@ -284,11 +284,11 @@ def get_registered_courses():
     if not student_id:
         return jsonify({"error": "Student ID is required"}), 400
 
-    try:
-        connection = create_connection()
-        if connection is None:
-            return jsonify({"error": "Failed to connect to the database"}), 500
+    connection = create_connection()
+    if connection is None:
+        return jsonify({"error": "Failed to connect to the database"}), 500
 
+    try:
         cursor = connection.cursor(dictionary=True)
 
         # Query to fetch registered courses
@@ -301,18 +301,16 @@ def get_registered_courses():
         cursor.execute(query_reg, (student_id,))
         registered_courses = cursor.fetchall()
 
-        # Modified query to fetch waitlisted courses with unique position calculation
+        # Modified query to fetch waitlisted courses with dynamically calculated position
         query_waitlist = """
-        SELECT waitlist_data.course_id, waitlist_data.name, waitlist_data.credits,
-               waitlist_data.wait_id, waitlist_data.position
-        FROM (
-            SELECT w.wait_id, c.course_id, c.name, c.credits,
-                   ROW_NUMBER() OVER (PARTITION BY w.course_id ORDER BY w.created_at ASC) AS position
-            FROM waitlist w
-            JOIN courses c ON w.course_id = c.course_id
-            WHERE w.course_id = c.course_id
-        ) AS waitlist_data
-        WHERE waitlist_data.student_id = %s
+        SELECT w.course_id, c.name, c.credits, w.wait_id,
+               (SELECT COUNT(*)
+                FROM waitlist w2
+                WHERE w2.course_id = w.course_id AND w2.created_at <= w.created_at) AS position
+        FROM waitlist w
+        JOIN courses c ON w.course_id = c.course_id
+        WHERE w.student_id = %s
+        ORDER BY w.created_at
         """
         cursor.execute(query_waitlist, (student_id,))
         waitlisted_courses = cursor.fetchall()
@@ -328,6 +326,7 @@ def get_registered_courses():
 
     finally:
         close_connection(connection)
+
 
 @app.route('/api/unregister_course', methods=['OPTIONS','POST'])
 def unregister_course():
