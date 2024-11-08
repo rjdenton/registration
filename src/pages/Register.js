@@ -376,8 +376,7 @@ function Register() {
                         <tr
                           key={course.course_id}
                           className={
-                            course.grade &&
-                            (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
+                            course.grade && (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
                               ? 'completed-course-row'
                               : ''
                           }
@@ -392,7 +391,6 @@ function Register() {
                   </table>
                 )}
 
-                {/* Electives Section */}
                 {electiveCourses.length > 0 && (
                   <div className="electives-section">
                     <h3>Elective Courses (9 credits required)</h3>
@@ -410,8 +408,7 @@ function Register() {
                           <tr
                             key={course.course_id}
                             className={
-                              course.grade &&
-                              (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
+                              course.grade && (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
                                 ? 'completed-course-row'
                                 : ''
                             }
@@ -426,8 +423,6 @@ function Register() {
                     </table>
                   </div>
                 )}
-
-
               </div>
             )}
 
