@@ -51,15 +51,14 @@ function Register() {
 
     const gradePoints = { 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0 };
 
-  // Fetch required courses for DegreeWorks
-  // Within fetchDegreeWorks, adjust the major and credits calculation
-
 // Fetch required courses for DegreeWorks, including the major name
 const fetchDegreeWorks = async () => {
   try {
     const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
     if (response.ok) {
       const data = await response.json();
+      console.log("DegreeWorks data:", data);
+
       setRequiredCourses(data.courses);
       setStudentName(data.student_name);
 
@@ -67,6 +66,7 @@ const fetchDegreeWorks = async () => {
       const majorResponse = await fetch(`/api/major_name?major_id=${user.major_id}`);
       if (majorResponse.ok) {
         const majorData = await majorResponse.json();
+        console.log("Major data:", majorData);
         setMajorName(majorData.major_name); // Ensure this matches the key from the server
       } else {
         console.error("Failed to fetch major name");
@@ -78,7 +78,11 @@ const fetchDegreeWorks = async () => {
       const totalCredits = completedWithGrades.reduce((acc, course) => acc + course.credits, 0);
       const calculatedGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
 
+      console.log("Total Points:", totalPoints, "Total Credits:", totalCredits, "GPA:", calculatedGPA);
+
       setGPA(calculatedGPA);
+      setTotalCredits(data.total_credits);
+      setCompletedCredits(totalCredits); // completedCredits comes from courses with grades
     } else {
       console.error("Failed to fetch DegreeWorks data");
     }
@@ -86,8 +90,6 @@ const fetchDegreeWorks = async () => {
     console.error("Error fetching DegreeWorks:", error);
   }
 };
-
-
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
