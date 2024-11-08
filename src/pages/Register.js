@@ -32,7 +32,8 @@ function Register() {
     removingWaitlistCourses,
     handleWaitlistCheckboxChange,
     handleRemoveFromWaitlist,
-    waitlistCourses
+    waitlistCourses,
+    setWaitlistCourses
   } = useRegistration(user);
 
   // Connect to WebSocket
@@ -48,8 +49,6 @@ function Register() {
   const [electiveCourses, setElectiveCourses] = useState([]);
   const [completedElectiveCredits, setCompletedElectiveCredits] = useState(0);
   const [majorName, setMajorName] = useState('');
-
-
 
     const calculateGPA = () => {
       if (requiredCourses.length === 0) return 0;
