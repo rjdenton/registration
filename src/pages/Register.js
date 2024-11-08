@@ -313,8 +313,8 @@ function Register() {
                 <h2>Degree Requirements</h2>
 
                 <div className="gpa-display">
-                    <strong>GPA: {calculateGPA()}</strong>
-                </div>
+                    <strong>{capitalizeName(user?.name || 'Student')}'s GPA: {calculateGPA()}</strong>
+                  </div>
 
                 {/* Progress Bar */}
                 <div className="progress-bar">
