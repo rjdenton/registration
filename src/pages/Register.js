@@ -112,6 +112,7 @@ function Register() {
   }, [user, fetchCurrentRegistrations]);
 
 useEffect(() => {
+    // Initialize socket connection
     const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
         transports: ["websocket"]
     });
@@ -133,29 +134,29 @@ useEffect(() => {
         }));
     });
 
-    // Listen for position updates
+    // Listen for position updates and handle each position update received
     socket.on("position_update", (data) => {
-        console.log("Received position update:", data); // Log the data structure for inspection
+        console.log("Received position update:", data); // Log full data for structure inspection
         const { course_id, positions } = data;
 
-        // Update waitlistCourses with new positions, using a functional update to ensure fresh state
-        setWaitlistCourses((prevWaitlistCourses) => {
-            // Map over current courses to find matches for the updated course_id
-            return prevWaitlistCourses.map((course) => {
+        // Update waitlistCourses with new positions using a functional update to ensure fresh state
+        setWaitlistCourses((prevWaitlistCourses) =>
+            prevWaitlistCourses.map((course) => {
                 if (course.course_id === course_id) {
+                    // Find updated position for the specific student in this course
                     const updatedPosition = positions.find((p) => p.student_id === course.student_id)?.position;
 
                     if (updatedPosition !== undefined) {
-                        console.log(`Updating course_id ${course.course_id} for student_id ${course.student_id} to position ${updatedPosition}`);
+                        console.log(`Updating position for course_id ${course.course_id}, student_id ${course.student_id}: position ${updatedPosition}`);
                         return { ...course, position: updatedPosition };
                     }
                 }
                 return course;
-            });
-        });
+            })
+        );
     });
 
-    // Cleanup listeners on unmount
+    // Cleanup listeners on component unmount
     return () => {
         socket.off("seat_update");
         socket.off("position_update");
