@@ -115,8 +115,8 @@ function Register() {
       console.log("Connected to WebSocket server");
     });
 
+    // Listener for seat updates
     socket.on("seat_update", (data) => {
-      console.log("Received seat update:", data);
       setAvailableSeats((prevSeats) => ({
         ...prevSeats,
         [data.course_id]: data.seats_available,
@@ -127,10 +127,31 @@ function Register() {
       }));
     });
 
+    // Listener for position updates
+    socket.on("position_update", (data) => {
+      const { course_id, positions } = data;
+
+      setWaitlistCourses((prevWaitlistCourses) =>
+        prevWaitlistCourses.map((course) => {
+          if (course.course_id === course_id) {
+            const updatedPosition = positions.find(
+              (p) => p.student_id === course.student_id
+            )?.position;
+
+            return updatedPosition !== undefined
+              ? { ...course, position: updatedPosition }
+              : course;
+          }
+          return course;
+        })
+      );
+    });
+
     return () => {
       socket.off("seat_update");
+      socket.off("position_update");
     };
-  }, [socket]);
+  }, [socket, setWaitlistCourses]);
 
   // Function to capitalize the user name
   function capitalizeName(name) {
