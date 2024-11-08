@@ -533,7 +533,8 @@ def get_completed_courses():
     finally:
         close_connection(connection)
 
-@app.route('/api/remove_waitlist_course', methods=['OPTIONS','POST'])
+
+@app.route('/api/remove_waitlist_course', methods=['OPTIONS', 'POST'])
 def remove_waitlist_course():
     data = request.get_json()
     course_id = data.get('course_id')
@@ -561,12 +562,15 @@ def remove_waitlist_course():
         """
         cursor.execute(update_waitlist_seats_query, (course_id,))
 
-        # Commit changes to the database
         connection.commit()
 
+        # Emit the seat and waitlist updates
         emit_seat_update(course_id)
 
-        print(f"Successfully removed course {course_id} from waitlist for student {student_id} and incremented waitlist seats.")
+        # Emit updated positions for this course
+        emit_waitlist_position_update(course_id)
+        print(f"Emitted updated waitlist positions for course {course_id}")
+
         return jsonify({"message": "Successfully removed from waitlist."}), 200
 
     except Error as e:
@@ -575,6 +579,7 @@ def remove_waitlist_course():
 
     finally:
         close_connection(connection)
+
 
 # In app.py or your routes file
 @app.route('/api/degreeworks', methods=['GET'])
