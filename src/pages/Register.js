@@ -47,6 +47,8 @@ function Register() {
   const [completedCredits, setCompletedCredits] = useState(0);
   const [electiveCourses, setElectiveCourses] = useState([]);
   const [completedElectiveCredits, setCompletedElectiveCredits] = useState(0);
+  const [majorName, setMajorName] = useState('');
+
 
 
     const calculateGPA = () => {
@@ -92,6 +94,24 @@ function Register() {
         console.error("Error fetching DegreeWorks:", error);
       }
     };
+
+    useEffect(() => {
+  const fetchMajorName = async () => {
+    try {
+      const response = await fetch(`/api/major?student_id=${user.student_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setMajorName(data.major_name);
+      }
+    } catch (error) {
+      console.error("Error fetching major name:", error);
+    }
+  };
+
+  if (user?.student_id) {
+    fetchMajorName();
+  }
+}, [user]);
 
 
   // Fetch DegreeWorks data when "DegreeWorks" tab is active
@@ -324,8 +344,8 @@ function Register() {
                 <h2>Degree Requirements</h2>
 
                 <div className="gpa-display">
-                    <strong>{capitalizeName(user?.name || 'Student')} |  GPA: {calculateGPA()}</strong>
-                  </div>
+                  <strong>{capitalizeName(user?.name || 'Student')} | {majorName} | GPA: {calculateGPA()}</strong>
+                </div>
 
                 {/* Progress Bar */}
                 <div className="progress-bar">
