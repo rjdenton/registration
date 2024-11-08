@@ -384,7 +384,7 @@ def unregister_course():
     finally:
         close_connection(connection)
 
-@app.route('/api/waitlist_course', methods=['OPTIONS','POST'])
+@app.route('/api/waitlist_course', methods=['OPTIONS', 'POST'])
 def waitlist_course():
     data = request.get_json()
     course_id = data.get('course_id')
@@ -406,21 +406,22 @@ def waitlist_course():
             VALUES (%s, %s, NOW())
         """
         cursor.execute(insert_query, (student_id, course_id))
-
-        # Decrement the waitlist seats for the course by 1
-        update_waitlist_seats_query = """
-            UPDATE courses
-            SET waitlist_seats = waitlist_seats - 1
-            WHERE course_id = %s AND waitlist_seats > 0
-        """
-        cursor.execute(update_waitlist_seats_query, (course_id,))
-
-        # Commit the transaction to apply changes
         connection.commit()
-        emit_seat_update(course_id)
-        print(f"Student {student_id} successfully added to the waitlist for course {course_id} and waitlist seats decremented.")
 
-        return jsonify({"message": "Successfully added to waitlist."}), 200
+        # Update the position of each student in the waitlist for this course based on created_at time
+        update_position_query = """
+            SET @pos := 0;
+            UPDATE waitlist
+            SET position = (@pos := @pos + 1)
+            WHERE course_id = %s
+            ORDER BY created_at ASC
+        """
+        cursor.execute(update_position_query, (course_id,))
+        connection.commit()
+
+        print(f"Student {student_id} successfully added to the waitlist for course {course_id} with position updated.")
+
+        return jsonify({"message": "Successfully added to waitlist and updated positions."}), 200
 
     except Error as e:
         print(f"Error adding to waitlist: {e}")
@@ -428,7 +429,6 @@ def waitlist_course():
 
     finally:
         close_connection(connection)
-
 
 @app.route('/api/completed_courses', methods=['OPTIONS','GET'])
 def get_completed_courses():
