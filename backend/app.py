@@ -375,6 +375,19 @@ def unregister_course():
         emit_seat_update(course_id)
         print(f"Successfully unregistered course {course_id} for student {student_id}.")
 
+        # Calculate updated positions for all students on the waitlist for this course
+        cursor.execute("""
+                    SELECT wait_id, student_id, course_id,
+                           ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at ASC) AS position
+                    FROM waitlist
+                    WHERE course_id = %s
+                """, (course_id,))
+        updated_positions = cursor.fetchall()
+
+        # Emit updated positions to all clients viewing the waitlist
+        socketio.emit('position_update', {'course_id': course_id, 'positions': updated_positions})
+        print(f"Position update emitted for course {course_id}")
+
         return jsonify({"message": f"Unregistered course {course_id} for student {student_id} and increased seat count."}), 200
 
     except Error as e:
