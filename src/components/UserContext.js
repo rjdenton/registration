@@ -23,8 +23,9 @@ export const UserProvider = ({ children }) => {
     }
   }, [user]);
 
+  // Update login to accept full user data
   const login = (userData) => {
-    setUser(userData);
+    setUser(userData);  // Set the complete user data, including major_name
   };
 
   const logout = () => {

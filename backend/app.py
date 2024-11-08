@@ -40,15 +40,39 @@ def login():
     user_info = verify_login(email, password)
 
     if user_info:
-        return jsonify({
-            "message": "Login successful!",
-            "user": {
-                "email": user_info['email'],
-                "name": user_info['name'],
-                "student_id": user_info['student_id'],
-                "major_id": user_info['major_id']
-            }
-        }), 200
+        connection = create_connection()
+        if connection is None:
+            return jsonify({"message": "Database connection failed!"}), 500
+
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT m.major_name
+                FROM majors m
+                JOIN students s ON s.major_id = m.id
+                WHERE s.student_id = %s
+            """, (user_info['student_id'],))
+            major_result = cursor.fetchone()
+
+            major_name = major_result['major_name'] if major_result else None
+
+            return jsonify({
+                "message": "Login successful!",
+                "user": {
+                    "email": user_info['email'],
+                    "name": user_info['name'],
+                    "student_id": user_info['student_id'],
+                    "major_id": user_info['major_id'],
+                    "major_name": major_name  # Include major name in response
+                }
+            }), 200
+
+        except Error as e:
+            print(f"Error fetching major name: {e}")
+            return jsonify({"message": "Error retrieving major name"}), 500
+
+        finally:
+            close_connection(connection)
     else:
         return jsonify({"message": "Invalid email or password!"}), 401
 
@@ -111,6 +135,7 @@ def recommendations():
     # Return the recommended courses as a JSON response
     return jsonify(recommended_courses)
 
+
 @app.route('/api/major', methods=['GET'])
 def get_major_name():
     student_id = request.args.get('student_id')
@@ -136,6 +161,8 @@ def get_major_name():
         """
         cursor.execute(query, (student_id,))
         result = cursor.fetchone()
+
+        print("SQL query executed successfully")
         print("Query result:", result)
 
         if result:
@@ -144,13 +171,13 @@ def get_major_name():
             print("Error: Major name not found for student_id:", student_id)
             return jsonify({"major_name": ""}), 404
 
-    except Error as e:
+    except Exception as e:
+        # Capture the exact error
         print(f"Database query error: {e}")
         return jsonify({"error": "Error fetching major name"}), 500
 
     finally:
         close_connection(connection)
-
 
 
 @app.route('/api/available_seats', methods=['OPTIONS','GET'])

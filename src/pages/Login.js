@@ -12,27 +12,28 @@ const Login = () => {
   const { login } = useUser();  // Access the login function from UserContext
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    const response = await axios.post('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/login', {
-      email,
-      password,
-    });
-    setMessage(response.data.message);
+    e.preventDefault();
+    try {
+      const response = await axios.post('https://mmis6299-registration-3fe6af6fc84a.herokuapp.com/api/login', {
+        email,
+        password,
+      });
 
-    // On successful login, store user data and navigate to the Register page
-    if (response.data.user) {
-      login(response.data.user);
-      navigate('/Register');
+      setMessage(response.data.message);
+
+      // On successful login, store user data (including major_name) and navigate to the Register page
+      if (response.data.user) {
+        login(response.data.user);  // Pass the full user object with major_name to login
+        navigate('/Register');
+      }
+    } catch (error) {
+      if (error.response) {
+        setMessage(error.response.data.message);
+      } else {
+        setMessage("Network Error");
+      }
     }
-  } catch (error) {
-    if (error.response) {
-      setMessage(error.response.data.message);
-    } else {
-      setMessage("Network Error");
-    }
-  }
-};
+  };
 
 
   return (
