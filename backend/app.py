@@ -277,9 +277,7 @@ def register_course():
     finally:
         close_connection(connection)
 
-
-
-@app.route('/api/registered_courses', methods=['OPTIONS','GET'])
+@app.route('/api/registered_courses', methods=['OPTIONS', 'GET'])
 def get_registered_courses():
     student_id = request.args.get('student_id')
 
@@ -303,18 +301,22 @@ def get_registered_courses():
         cursor.execute(query_reg, (student_id,))
         registered_courses = cursor.fetchall()
 
-        # Query to fetch waitlisted courses with dynamic position based on `created_at`
+        # Modified query to fetch waitlisted courses with unique position calculation
         query_waitlist = """
-        SELECT c.course_id, c.name, c.credits, w.wait_id,
-               ROW_NUMBER() OVER (PARTITION BY w.course_id ORDER BY w.created_at) AS position
-        FROM waitlist w
-        JOIN courses c ON w.course_id = c.course_id
-        WHERE w.student_id = %s
+        SELECT waitlist_data.course_id, waitlist_data.name, waitlist_data.credits,
+               waitlist_data.wait_id, waitlist_data.position
+        FROM (
+            SELECT w.wait_id, c.course_id, c.name, c.credits,
+                   ROW_NUMBER() OVER (PARTITION BY w.course_id ORDER BY w.created_at ASC) AS position
+            FROM waitlist w
+            JOIN courses c ON w.course_id = c.course_id
+            WHERE w.course_id = c.course_id
+        ) AS waitlist_data
+        WHERE waitlist_data.student_id = %s
         """
         cursor.execute(query_waitlist, (student_id,))
         waitlisted_courses = cursor.fetchall()
 
-        # Return both registered and waitlisted courses separately
         return jsonify({
             "registered_courses": registered_courses,
             "waitlisted_courses": waitlisted_courses

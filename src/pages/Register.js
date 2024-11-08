@@ -142,11 +142,6 @@ function Register() {
 
   return (
     <div className="register-container">
-          <img
-            src="../images/gcsu-logo.png"  // Replace with the actual path to your image
-            alt="User"
-            className="welcome-image"
-          />
           <h2 style={{
                 color: '#007bff',        // Text color
                 padding: '10px 20px',    // Padding around the text
