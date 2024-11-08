@@ -271,12 +271,11 @@ def emit_waitlist_position_update(course_id):
         cursor.execute(query, (course_id,))
         waitlist_positions = cursor.fetchall()
 
-        # Log emitted positions for verification
+        # Debugging: print the emitted data structure
         print(f"Emitting position update for course {course_id}: {waitlist_positions}")
 
-        # Emit the data
+        # Emit the position update
         socketio.emit('position_update', {'course_id': course_id, 'positions': waitlist_positions})
-
     except Exception as e:
         print(f"Exception in emit_waitlist_position_update: {e}")
     finally:

@@ -111,11 +111,14 @@ function Register() {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
 
-  // Handle WebSocket connection and seat updates
-  // WebSocket handler for position updates
 useEffect(() => {
     const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
       transports: ["websocket"]
+    });
+
+    // Log socket connection success
+    socket.on("connect", () => {
+        console.log("Connected to WebSocket server");
     });
 
     socket.on("seat_update", (data) => {
@@ -129,11 +132,13 @@ useEffect(() => {
         }));
     });
 
+    // Waitlist position updates
     socket.on("position_update", (data) => {
-        const { course_id, positions } = data;
-        console.log("Received position update:", positions);
+        console.log("Received position update:", data);  // Debugging line to log received data
 
-        // Update waitlist courses with new positions
+        const { course_id, positions } = data;
+
+        // Update positions in waitlistCourses
         setWaitlistCourses((prevWaitlistCourses) =>
             prevWaitlistCourses.map((course) =>
                 course.course_id === course_id
@@ -152,6 +157,7 @@ useEffect(() => {
         socket.disconnect();
     };
 }, []);
+
 
   // Listen for position updates on waitlist
   useEffect(() => {
