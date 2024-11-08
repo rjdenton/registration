@@ -408,13 +408,15 @@ def waitlist_course():
         cursor.execute(insert_query, (student_id, course_id))
         connection.commit()
 
-        # Update the position of each student in the waitlist for this course based on created_at time
+        # Use a query to set positions based on created_at timestamp
         update_position_query = """
-            SET @pos := 0;
-            UPDATE waitlist
-            SET position = (@pos := @pos + 1)
-            WHERE course_id = %s
-            ORDER BY created_at ASC
+            UPDATE waitlist AS w1
+            JOIN (
+                SELECT wait_id, ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at ASC) AS position
+                FROM waitlist
+            ) AS w2 ON w1.wait_id = w2.wait_id
+            SET w1.position = w2.position
+            WHERE w1.course_id = %s
         """
         cursor.execute(update_position_query, (course_id,))
         connection.commit()
@@ -429,6 +431,7 @@ def waitlist_course():
 
     finally:
         close_connection(connection)
+
 
 @app.route('/api/completed_courses', methods=['OPTIONS','GET'])
 def get_completed_courses():
