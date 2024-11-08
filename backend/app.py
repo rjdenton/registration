@@ -111,6 +111,33 @@ def recommendations():
     # Return the recommended courses as a JSON response
     return jsonify(recommended_courses)
 
+@app.route('/api/major', methods=['GET'])
+def get_major_name():
+    student_id = request.args.get('student_id')
+    if not student_id:
+        return jsonify({"error": "Student ID is required"}), 400
+
+    connection = create_connection()
+    if connection is None:
+        return jsonify({"error": "Failed to connect to the database"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT major_name FROM students WHERE student_id = %s", (student_id,))
+        result = cursor.fetchone()
+
+        if result:
+            return jsonify({"major_name": result['major_name']})
+        else:
+            return jsonify({"major_name": ""}), 404
+
+    except Error as e:
+        print(f"Error querying the database: {e}")
+        return jsonify({"error": "Error fetching major name"}), 500
+
+    finally:
+        close_connection(connection)
+
 
 @app.route('/api/available_seats', methods=['OPTIONS','GET'])
 def get_available_seats():
