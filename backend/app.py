@@ -486,6 +486,8 @@ def emit_position_update(course_id):
         """, (course_id,))
         positions = cursor.fetchall()
 
+        print(f"Emitting position update for course {course_id}: {positions}")  # Log emitted data
+
         # Emit the positions as a 'position_update' event
         socketio.emit('position_update', {'course_id': course_id, 'positions': positions})
     except Exception as e:
