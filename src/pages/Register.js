@@ -32,12 +32,12 @@ function Register() {
     removingWaitlistCourses,
     handleWaitlistCheckboxChange,
     handleRemoveFromWaitlist,
-    waitlistCourses,
-    setWaitlistCourses
+    waitlistCourses
   } = useRegistration(user);
 
+  // Connect to WebSocket
   const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-    transports: ["websocket", "polling"]
+    transports: ["websocket"]
   });
 
   const [availableSeats, setAvailableSeats] = useState({});
@@ -48,88 +48,75 @@ function Register() {
   const [electiveCourses, setElectiveCourses] = useState([]);
   const [completedElectiveCredits, setCompletedElectiveCredits] = useState(0);
   const [majorName, setMajorName] = useState('');
-  const [waitlistUpdateKey, setWaitlistUpdateKey] = useState(0);
 
-  const calculateGPA = () => {
-    if (requiredCourses.length === 0) return 0;
 
-    const gradePoints = {
-      A: 4.0,
-      B: 3.0,
-      C: 2.0,
-      D: 1.0,
-      F: 0.0,
+
+    const calculateGPA = () => {
+      if (requiredCourses.length === 0) return 0;
+
+      const gradePoints = {
+        A: 4.0,
+        B: 3.0,
+        C: 2.0,
+        D: 1.0,
+        F: 0.0,
+      };
+
+      // Filter completed courses and calculate GPA
+      const completedCoursesWithGrades = requiredCourses.filter((course) => course.grade && gradePoints[course.grade] !== undefined);
+      const totalPoints = completedCoursesWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
+      const totalCredits = completedCoursesWithGrades.reduce((acc, course) => acc + course.credits, 0);
+
+      return totalCredits ? (totalPoints / totalCredits).toFixed(2) : 0;
     };
 
-    const completedCoursesWithGrades = requiredCourses.filter((course) => course.grade && gradePoints[course.grade] !== undefined);
-    const totalPoints = completedCoursesWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
-    const totalCredits = completedCoursesWithGrades.reduce((acc, course) => acc + course.credits, 0);
+  // Fetch required courses for DegreeWorks
+      const fetchDegreeWorks = async () => {
+      try {
+        const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRequiredCourses(data.required_courses);
+          setElectiveCourses(data.elective_courses);
+          setTotalCredits(data.total_credits);
+          setCompletedCredits(data.completed_credits);
 
-    return totalCredits ? (totalPoints / totalCredits).toFixed(2) : 0;
-  };
+          // Calculate completed elective credits
+          const electiveCompleted = data.elective_courses
+            .filter(course => ['A', 'B', 'C'].includes(course.grade))
+            .reduce((acc, course) => acc + course.credits, 0);
+          setCompletedElectiveCredits(electiveCompleted);
 
-  const fetchDegreeWorks = async () => {
-    try {
-      const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setRequiredCourses(data.required_courses);
-        setElectiveCourses(data.elective_courses);
-        setTotalCredits(data.total_credits);
-        setCompletedCredits(data.completed_credits);
-
-        const electiveCompleted = data.elective_courses
-          .filter(course => ['A', 'B', 'C'].includes(course.grade))
-          .reduce((acc, course) => acc + course.credits, 0);
-        setCompletedElectiveCredits(electiveCompleted);
-      } else {
-        console.error("Failed to fetch DegreeWorks data");
+        } else {
+          console.error("Failed to fetch DegreeWorks data");
+        }
+      } catch (error) {
+        console.error("Error fetching DegreeWorks:", error);
       }
-    } catch (error) {
-      console.error("Error fetching DegreeWorks:", error);
-    }
-  };
+    };
 
+  // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
     if (activeTab === 'degreeworks') {
       fetchDegreeWorks();
     }
   }, [activeTab, user]);
 
-  const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
+    const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
 
-  const POLLING_INTERVAL = 2000;
-
-  useEffect(() => {
-    const pollWaitlistData = async () => {
-      try {
-        const response = await fetch(`/api/registered_courses?student_id=${user.student_id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setWaitlistCourses(data.waitlisted_courses);
-        }
-      } catch (error) {
-        console.error("Polling error:", error);
-      }
-    };
-
-    const intervalId = setInterval(pollWaitlistData, POLLING_INTERVAL);
-
-    return () => clearInterval(intervalId);
-  }, [user.student_id, setWaitlistCourses]);
-
+  // Initial fetch for current registrations
   useEffect(() => {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
 
-  const [updateTrigger, setUpdateTrigger] = useState(false);
-
+  // Handle WebSocket connection and seat updates
   useEffect(() => {
     socket.on("connect", () => {
       console.log("Connected to WebSocket server");
     });
 
     socket.on("seat_update", (data) => {
+      console.log("Received seat update:", data);
       setAvailableSeats((prevSeats) => ({
         ...prevSeats,
         [data.course_id]: data.seats_available,
@@ -140,35 +127,12 @@ function Register() {
       }));
     });
 
-    socket.on("position_update", (data) => {
-      console.log("Received position update:", data);
-      const { course_id, positions } = data;
-
-      setWaitlistCourses((prevWaitlistCourses) => {
-        const updatedWaitlistCourses = prevWaitlistCourses.map((course) => {
-          if (course.course_id === course_id) {
-            const updatedPosition = positions.find(
-              (p) => p.student_id === course.student_id
-            )?.position;
-
-            return updatedPosition !== undefined
-              ? { ...course, position: updatedPosition }
-              : course;
-          }
-          return course;
-        });
-
-        setWaitlistUpdateKey(prevKey => prevKey + 1);
-        return updatedWaitlistCourses;
-      });
-    });
-
     return () => {
       socket.off("seat_update");
-      socket.off("position_update");
     };
-  }, [socket, setWaitlistCourses]);
+  }, [socket]);
 
+  // Function to capitalize the user name
   function capitalizeName(name) {
     return name
       .split(' ')
@@ -274,50 +238,51 @@ function Register() {
             )}
 
           {activeTab === 'waitlist' && (
-                <div className="waitlist-courses" key={waitlistUpdateKey}>
-                    <h2>Waitlisted Courses</h2>
-                    {waitlistCourses.length > 0 ? (
-                        <div>
-                            <table className="courses-table full-width styled-table">
-                                <thead>
-                                    <tr>
-                                        <th>Select</th>
-                                        <th>Course ID</th>
-                                        <th>Course Name</th>
-                                        <th>Credits</th>
-                                        <th>Waitlist Position</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {waitlistCourses.map((course) => (
-                                        <tr key={course.course_id}>
-                                            <td>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={removingWaitlistCourses.includes(course.course_id)}
-                                                    onChange={() => handleWaitlistCheckboxChange(course.course_id)}
-                                                />
-                                            </td>
-                                            <td>{course.course_id}</td>
-                                            <td>{course.name}</td>
-                                            <td>{course.credits}</td>
-                                            <td>{course.position}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {removingWaitlistCourses.length > 0 && (
-                                <div className="submit-container">
-                                    <button type="button" onClick={handleRemoveFromWaitlist} className="remove-btn">
-                                        Remove Selected Courses from Waitlist
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <p className="no-courses-message">No courses currently in the waitlist.</p>
+              <div className="waitlist-courses">
+                <h2>Waitlisted Courses</h2>
+                {waitlistCourses.length > 0 ? (
+                  <div>
+                    <table className="courses-table full-width styled-table">
+                      <thead>
+                        <tr>
+                          <th>Select</th> {/* Checkbox column header */}
+                          <th>Course ID</th>
+                          <th>Course Name</th>
+                          <th>Credits</th>
+                          <th>Waitlist Position</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {waitlistCourses.map((course) => (
+                          <tr key={course.course_id}>
+                            <td>
+                              <input
+                                type="checkbox"
+                                checked={removingWaitlistCourses.includes(course.course_id)}
+                                onChange={() => handleWaitlistCheckboxChange(course.course_id)}
+                              />
+                            </td>
+                            <td>{course.course_id}</td>
+                            <td>{course.name}</td>
+                            <td>{course.credits}</td>
+                            <td>{course.position}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {/* Remove selected button */}
+                    {removingWaitlistCourses.length > 0 && (
+                      <div className="submit-container">
+                        <button type="button" onClick={handleRemoveFromWaitlist} className="remove-btn">
+                          Remove Selected Courses from Waitlist
+                        </button>
+                      </div>
                     )}
-                </div>
+                  </div>
+                ) : (
+                  <p className="no-courses-message">No courses currently in the waitlist.</p>
+                )}
+              </div>
             )}
 
 

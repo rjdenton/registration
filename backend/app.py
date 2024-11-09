@@ -474,25 +474,6 @@ def get_completed_courses():
     finally:
         close_connection(connection)
 
-def emit_position_update(course_id):
-    connection = create_connection()
-    try:
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT student_id, ROW_NUMBER() OVER (ORDER BY created_at) AS position
-            FROM waitlist
-            WHERE course_id = %s
-        """, (course_id,))
-        positions = cursor.fetchall()
-
-        print(f"Emitting position update for course {course_id}: {positions}")  # Log emitted data
-        socketio.emit('position_update', {'course_id': course_id, 'positions': positions})
-    except Exception as e:
-        print(f"Exception in emit_position_update: {e}")
-    finally:
-        close_connection(connection)
-
-
 @app.route('/api/remove_waitlist_course', methods=['OPTIONS','POST'])
 def remove_waitlist_course():
     data = request.get_json()
@@ -525,7 +506,6 @@ def remove_waitlist_course():
         connection.commit()
 
         emit_seat_update(course_id)
-        emit_position_update(course_id)
 
         print(f"Successfully removed course {course_id} from waitlist for student {student_id} and incremented waitlist seats.")
         return jsonify({"message": "Successfully removed from waitlist."}), 200
