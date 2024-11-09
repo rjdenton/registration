@@ -108,6 +108,7 @@ function Register() {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
 
+    const [updateTrigger, setUpdateTrigger] = useState(false);
   // Handle WebSocket connection and seat updates
   useEffect(() => {
     socket.on("connect", () => {
@@ -116,7 +117,7 @@ function Register() {
 
     // Listen for position updates
     socket.on("position_update", (data) => {
-        console.log("Received position update:", data); // Log received data
+        console.log("Received position update:", data); // Log full data to verify structure
 
         const { course_id, positions } = data;
 
@@ -141,12 +142,14 @@ function Register() {
 
             return updatedWaitlistCourses;
         });
+        setUpdateTrigger((prev) => !prev);
     });
 
     return () => {
         socket.off("position_update");
     };
 }, [socket, setWaitlistCourses]);
+
 
 
   // Function to capitalize the user name
@@ -255,7 +258,7 @@ function Register() {
             )}
 
           {activeTab === 'waitlist' && (
-            <div className="waitlist-courses">
+            <div className="waitlist-courses"  key={updateTrigger}>
               <h2>Waitlisted Courses</h2>
               {waitlistCourses.length > 0 ? (
                 <div>
@@ -292,6 +295,8 @@ function Register() {
                       <button type="button" onClick={handleRemoveFromWaitlist} className="remove-btn">
                         Remove Selected Courses from Waitlist
                       </button>
+                      {console.log("Rendering waitlistCourses:", waitlistCourses)}
+
                     </div>
                   )}
                 </div>
