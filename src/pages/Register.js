@@ -36,7 +36,6 @@ function Register() {
     setWaitlistCourses
   } = useRegistration(user);
 
-  // Connect to WebSocket
   const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
     transports: ["websocket", "polling"]
   });
@@ -51,141 +50,125 @@ function Register() {
   const [majorName, setMajorName] = useState('');
   const [waitlistUpdateKey, setWaitlistUpdateKey] = useState(0);
 
-    const calculateGPA = () => {
-      if (requiredCourses.length === 0) return 0;
+  const calculateGPA = () => {
+    if (requiredCourses.length === 0) return 0;
 
-      const gradePoints = {
-        A: 4.0,
-        B: 3.0,
-        C: 2.0,
-        D: 1.0,
-        F: 0.0,
-      };
-
-      // Filter completed courses and calculate GPA
-      const completedCoursesWithGrades = requiredCourses.filter((course) => course.grade && gradePoints[course.grade] !== undefined);
-      const totalPoints = completedCoursesWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
-      const totalCredits = completedCoursesWithGrades.reduce((acc, course) => acc + course.credits, 0);
-
-      return totalCredits ? (totalPoints / totalCredits).toFixed(2) : 0;
+    const gradePoints = {
+      A: 4.0,
+      B: 3.0,
+      C: 2.0,
+      D: 1.0,
+      F: 0.0,
     };
 
-  // Fetch required courses for DegreeWorks
-      const fetchDegreeWorks = async () => {
-      try {
-        const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setRequiredCourses(data.required_courses);
-          setElectiveCourses(data.elective_courses);
-          setTotalCredits(data.total_credits);
-          setCompletedCredits(data.completed_credits);
+    const completedCoursesWithGrades = requiredCourses.filter((course) => course.grade && gradePoints[course.grade] !== undefined);
+    const totalPoints = completedCoursesWithGrades.reduce((acc, course) => acc + gradePoints[course.grade] * course.credits, 0);
+    const totalCredits = completedCoursesWithGrades.reduce((acc, course) => acc + course.credits, 0);
 
-          // Calculate completed elective credits
-          const electiveCompleted = data.elective_courses
-            .filter(course => ['A', 'B', 'C'].includes(course.grade))
-            .reduce((acc, course) => acc + course.credits, 0);
-          setCompletedElectiveCredits(electiveCompleted);
+    return totalCredits ? (totalPoints / totalCredits).toFixed(2) : 0;
+  };
 
-        } else {
-          console.error("Failed to fetch DegreeWorks data");
-        }
-      } catch (error) {
-        console.error("Error fetching DegreeWorks:", error);
+  const fetchDegreeWorks = async () => {
+    try {
+      const response = await fetch(`/api/degreeworks?student_id=${user.student_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRequiredCourses(data.required_courses);
+        setElectiveCourses(data.elective_courses);
+        setTotalCredits(data.total_credits);
+        setCompletedCredits(data.completed_credits);
+
+        const electiveCompleted = data.elective_courses
+          .filter(course => ['A', 'B', 'C'].includes(course.grade))
+          .reduce((acc, course) => acc + course.credits, 0);
+        setCompletedElectiveCredits(electiveCompleted);
+      } else {
+        console.error("Failed to fetch DegreeWorks data");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching DegreeWorks:", error);
+    }
+  };
 
-  // Fetch DegreeWorks data when "DegreeWorks" tab is active
   useEffect(() => {
     if (activeTab === 'degreeworks') {
       fetchDegreeWorks();
     }
   }, [activeTab, user]);
 
-    const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
+  const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
 
-    // Polling interval (e.g., every 10 seconds)
-const POLLING_INTERVAL = 2000;
+  const POLLING_INTERVAL = 2000;
 
-useEffect(() => {
+  useEffect(() => {
     const pollWaitlistData = async () => {
-        try {
-            const response = await fetch(`/api/registered_courses?student_id=${user.student_id}`);
-            if (response.ok) {
-                const data = await response.json();
-                setWaitlistCourses(data.waitlisted_courses);
-            }
-        } catch (error) {
-            console.error("Polling error:", error);
+      try {
+        const response = await fetch(`/api/registered_courses?student_id=${user.student_id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setWaitlistCourses(data.waitlisted_courses);
         }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
     };
 
-    // Set interval for polling
     const intervalId = setInterval(pollWaitlistData, POLLING_INTERVAL);
 
-    // Clean up interval on unmount
     return () => clearInterval(intervalId);
-}, [user.student_id, setWaitlistCourses]);
+  }, [user.student_id, setWaitlistCourses]);
 
-
-  // Initial fetch for current registrations
   useEffect(() => {
     fetchCurrentRegistrations();
   }, [user, fetchCurrentRegistrations]);
 
-    const [updateTrigger, setUpdateTrigger] = useState(false);
-  // Handle WebSocket connection and seat updates
+  const [updateTrigger, setUpdateTrigger] = useState(false);
+
   useEffect(() => {
-        socket.on("connect", () => {
-            console.log("Connected to WebSocket server");
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket server");
+    });
+
+    socket.on("seat_update", (data) => {
+      setAvailableSeats((prevSeats) => ({
+        ...prevSeats,
+        [data.course_id]: data.seats_available,
+      }));
+      setWaitlistSeats((prevWaitlistSeats) => ({
+        ...prevWaitlistSeats,
+        [data.course_id]: data.waitlist_seats,
+      }));
+    });
+
+    socket.on("position_update", (data) => {
+      console.log("Received position update:", data);
+      const { course_id, positions } = data;
+
+      setWaitlistCourses((prevWaitlistCourses) => {
+        const updatedWaitlistCourses = prevWaitlistCourses.map((course) => {
+          if (course.course_id === course_id) {
+            const updatedPosition = positions.find(
+              (p) => p.student_id === course.student_id
+            )?.position;
+
+            return updatedPosition !== undefined
+              ? { ...course, position: updatedPosition }
+              : course;
+          }
+          return course;
         });
 
-        // Listen for seat updates
-        socket.on("seat_update", (data) => {
-            setAvailableSeats((prevSeats) => ({
-                ...prevSeats,
-                [data.course_id]: data.seats_available,
-            }));
-            setWaitlistSeats((prevWaitlistSeats) => ({
-                ...prevWaitlistSeats,
-                [data.course_id]: data.waitlist_seats,
-            }));
-        });
+        setWaitlistUpdateKey(prevKey => prevKey + 1);
+        return updatedWaitlistCourses;
+      });
+    });
 
-        // Listen for position updates
-        socket.on("position_update", (data) => {
-            console.log("Received position update:", data);
-            const { course_id, positions } = data;
+    return () => {
+      socket.off("seat_update");
+      socket.off("position_update");
+    };
+  }, [socket, setWaitlistCourses]);
 
-            setWaitlistCourses((prevWaitlistCourses) => {
-                const updatedWaitlistCourses = prevWaitlistCourses.map((course) => {
-                    if (course.course_id === course_id) {
-                        const updatedPosition = positions.find(
-                            (p) => p.student_id === course.student_id
-                        )?.position;
-
-                        return updatedPosition !== undefined
-                            ? { ...course, position: updatedPosition }
-                            : course;
-                    }
-                    return course;
-                });
-
-                // Force re-render by updating the key
-                setWaitlistUpdateKey(prevKey => prevKey + 1);
-                return updatedWaitlistCourses;
-            });
-        });
-
-        return () => {
-            socket.off("seat_update");
-            socket.off("position_update");
-        };
-    }, [socket, setWaitlistCourses]);
-
-
-
-  // Function to capitalize the user name
   function capitalizeName(name) {
     return name
       .split(' ')

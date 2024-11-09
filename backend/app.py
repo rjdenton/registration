@@ -479,21 +479,19 @@ def emit_position_update(course_id):
     try:
         cursor = connection.cursor(dictionary=True)
         cursor.execute("""
-            SELECT student_id, 
-                   ROW_NUMBER() OVER (ORDER BY created_at) AS position
+            SELECT student_id, ROW_NUMBER() OVER (ORDER BY created_at) AS position
             FROM waitlist
             WHERE course_id = %s
         """, (course_id,))
         positions = cursor.fetchall()
 
         print(f"Emitting position update for course {course_id}: {positions}")  # Log emitted data
-
-        # Emit the positions as a 'position_update' event
         socketio.emit('position_update', {'course_id': course_id, 'positions': positions})
     except Exception as e:
         print(f"Exception in emit_position_update: {e}")
     finally:
         close_connection(connection)
+
 
 @app.route('/api/remove_waitlist_course', methods=['OPTIONS','POST'])
 def remove_waitlist_course():
