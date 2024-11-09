@@ -49,6 +49,7 @@ function Register() {
   const [electiveCourses, setElectiveCourses] = useState([]);
   const [completedElectiveCredits, setCompletedElectiveCredits] = useState(0);
   const [majorName, setMajorName] = useState('');
+  const [waitlistUpdateKey, setWaitlistUpdateKey] = useState(0);
 
     const calculateGPA = () => {
       if (requiredCourses.length === 0) return 0;
@@ -111,44 +112,52 @@ function Register() {
     const [updateTrigger, setUpdateTrigger] = useState(false);
   // Handle WebSocket connection and seat updates
   useEffect(() => {
-    socket.on("connect", () => {
-        console.log("Connected to WebSocket server");
-    });
-
-    // Listen for position updates
-    socket.on("position_update", (data) => {
-        console.log("Received position update:", data); // Log full data to verify structure
-
-        const { course_id, positions } = data;
-
-        setWaitlistCourses((prevWaitlistCourses) => {
-            console.log("Previous waitlistCourses:", prevWaitlistCourses); // Log previous state
-
-            const updatedWaitlistCourses = prevWaitlistCourses.map((course) => {
-                if (course.course_id === course_id) {
-                    const updatedPosition = positions.find(
-                        (p) => p.student_id === course.student_id
-                    )?.position;
-
-                    if (updatedPosition !== undefined) {
-                        console.log(`Updating position for course_id ${course.course_id}, student_id ${course.student_id}: position ${updatedPosition}`);
-                        return { ...course, position: updatedPosition };
-                    }
-                }
-                return course;
-            });
-
-            console.log("Updated waitlistCourses:", updatedWaitlistCourses); // Log updated state
-
-            return updatedWaitlistCourses;
+        socket.on("connect", () => {
+            console.log("Connected to WebSocket server");
         });
-        setUpdateTrigger((prev) => !prev);
-    });
 
-    return () => {
-        socket.off("position_update");
-    };
-}, [socket, setWaitlistCourses]);
+        // Listen for seat updates
+        socket.on("seat_update", (data) => {
+            setAvailableSeats((prevSeats) => ({
+                ...prevSeats,
+                [data.course_id]: data.seats_available,
+            }));
+            setWaitlistSeats((prevWaitlistSeats) => ({
+                ...prevWaitlistSeats,
+                [data.course_id]: data.waitlist_seats,
+            }));
+        });
+
+        // Listen for position updates
+        socket.on("position_update", (data) => {
+            console.log("Received position update:", data);
+            const { course_id, positions } = data;
+
+            setWaitlistCourses((prevWaitlistCourses) => {
+                const updatedWaitlistCourses = prevWaitlistCourses.map((course) => {
+                    if (course.course_id === course_id) {
+                        const updatedPosition = positions.find(
+                            (p) => p.student_id === course.student_id
+                        )?.position;
+
+                        return updatedPosition !== undefined
+                            ? { ...course, position: updatedPosition }
+                            : course;
+                    }
+                    return course;
+                });
+
+                // Force re-render by updating the key
+                setWaitlistUpdateKey(prevKey => prevKey + 1);
+                return updatedWaitlistCourses;
+            });
+        });
+
+        return () => {
+            socket.off("seat_update");
+            socket.off("position_update");
+        };
+    }, [socket, setWaitlistCourses]);
 
 
 
@@ -258,53 +267,51 @@ function Register() {
             )}
 
           {activeTab === 'waitlist' && (
-            <div className="waitlist-courses"  key={updateTrigger}>
-              <h2>Waitlisted Courses</h2>
-              {waitlistCourses.length > 0 ? (
-                <div>
-                  <table className="courses-table full-width styled-table">
-                    <thead>
-                      <tr>
-                        <th>Select</th>
-                        <th>Course ID</th>
-                        <th>Course Name</th>
-                        <th>Credits</th>
-                        <th>Waitlist Position</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {waitlistCourses.map((course) => (
-                        <tr key={course.course_id}>
-                          <td>
-                            <input
-                              type="checkbox"
-                              checked={removingWaitlistCourses.includes(course.course_id)}
-                              onChange={() => handleWaitlistCheckboxChange(course.course_id)}
-                            />
-                          </td>
-                          <td>{course.course_id}</td>
-                          <td>{course.name}</td>
-                          <td>{course.credits}</td>
-                          <td>{course.position}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {removingWaitlistCourses.length > 0 && (
-                    <div className="submit-container">
-                      <button type="button" onClick={handleRemoveFromWaitlist} className="remove-btn">
-                        Remove Selected Courses from Waitlist
-                      </button>
-                      {console.log("Rendering waitlistCourses:", waitlistCourses)}
-
-                    </div>
-                  )}
+                <div className="waitlist-courses" key={waitlistUpdateKey}>
+                    <h2>Waitlisted Courses</h2>
+                    {waitlistCourses.length > 0 ? (
+                        <div>
+                            <table className="courses-table full-width styled-table">
+                                <thead>
+                                    <tr>
+                                        <th>Select</th>
+                                        <th>Course ID</th>
+                                        <th>Course Name</th>
+                                        <th>Credits</th>
+                                        <th>Waitlist Position</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {waitlistCourses.map((course) => (
+                                        <tr key={course.course_id}>
+                                            <td>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={removingWaitlistCourses.includes(course.course_id)}
+                                                    onChange={() => handleWaitlistCheckboxChange(course.course_id)}
+                                                />
+                                            </td>
+                                            <td>{course.course_id}</td>
+                                            <td>{course.name}</td>
+                                            <td>{course.credits}</td>
+                                            <td>{course.position}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {removingWaitlistCourses.length > 0 && (
+                                <div className="submit-container">
+                                    <button type="button" onClick={handleRemoveFromWaitlist} className="remove-btn">
+                                        Remove Selected Courses from Waitlist
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="no-courses-message">No courses currently in the waitlist.</p>
+                    )}
                 </div>
-              ) : (
-                <p className="no-courses-message">No courses currently in the waitlist.</p>
-              )}
-            </div>
-          )}
+            )}
 
 
 
