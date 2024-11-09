@@ -104,6 +104,30 @@ function Register() {
 
     const progressPercentage = totalCredits + 9 ? Math.round(((completedCredits + completedElectiveCredits) / (totalCredits + 9)) * 100) : 0;
 
+    // Polling interval (e.g., every 10 seconds)
+const POLLING_INTERVAL = 2000;
+
+useEffect(() => {
+    const pollWaitlistData = async () => {
+        try {
+            const response = await fetch(`/api/registered_courses?student_id=${user.student_id}`);
+            if (response.ok) {
+                const data = await response.json();
+                setWaitlistCourses(data.waitlisted_courses);
+            }
+        } catch (error) {
+            console.error("Polling error:", error);
+        }
+    };
+
+    // Set interval for polling
+    const intervalId = setInterval(pollWaitlistData, POLLING_INTERVAL);
+
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+}, [user.student_id, setWaitlistCourses]);
+
+
   // Initial fetch for current registrations
   useEffect(() => {
     fetchCurrentRegistrations();
