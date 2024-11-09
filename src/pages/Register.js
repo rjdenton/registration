@@ -38,7 +38,7 @@ function Register() {
 
   // Connect to WebSocket
   const socket = io.connect("https://mmis6299-registration-3fe6af6fc84a.herokuapp.com", {
-    transports: ["websocket"]
+    transports: ["websocket", "polling"]
   });
 
   const [availableSeats, setAvailableSeats] = useState({});
