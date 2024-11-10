@@ -327,7 +327,6 @@ function Register() {
 
             {activeTab === 'degreeworks' && (
               <div className="degreeworks-container">
-                <h2>Degree Requirements</h2>
 
                 <div className="gpa-display">
                   <strong>{capitalizeName(user?.name || 'Student')} | {user.major_name || 'Major not found'} | GPA: {calculateGPA()}</strong>
@@ -344,6 +343,7 @@ function Register() {
                 </div>
 
                 {requiredCourses.length > 0 && (
+                 <h3>Required Courses</h3>
                   <table className="degreeworks-table">
                     <thead>
                       <tr>
