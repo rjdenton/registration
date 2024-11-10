@@ -343,35 +343,37 @@ function Register() {
                 </div>
 
                 {requiredCourses.length > 0 && (
+                <div className="required-section">
                  <h3>Required Courses</h3>
-                  <table className="degreeworks-table">
-                    <thead>
-                      <tr>
-                        <th>Course ID</th>
-                        <th>Course Name</th>
-                        <th>Credits</th>
-                        <th>Grade</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {requiredCourses.map((course) => (
-                        <tr
-                          key={course.course_id}
-                          className={
-                            course.grade && (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
-                              ? 'completed-course-row'
-                              : ''
-                          }
-                        >
-                          <td>{course.course_id}</td>
-                          <td>{course.name}</td>
-                          <td>{course.credits}</td>
-                          <td>{course.grade || ''}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                      <table className="degreeworks-table">
+                        <thead>
+                          <tr>
+                            <th>Course ID</th>
+                            <th>Course Name</th>
+                            <th>Credits</th>
+                            <th>Grade</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {requiredCourses.map((course) => (
+                            <tr
+                              key={course.course_id}
+                              className={
+                                course.grade && (course.grade === 'A' || course.grade === 'B' || course.grade === 'C')
+                                  ? 'completed-course-row'
+                                  : ''
+                              }
+                            >
+                              <td>{course.course_id}</td>
+                              <td>{course.name}</td>
+                              <td>{course.credits}</td>
+                              <td>{course.grade || ''}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                </div>
 
                 {electiveCourses.length > 0 && (
                   <div className="electives-section">
