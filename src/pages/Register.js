@@ -372,8 +372,8 @@ function Register() {
                           ))}
                         </tbody>
                       </table>
-                    )}
-                </div>
+                  </div>
+                )}
 
                 {electiveCourses.length > 0 && (
                   <div className="electives-section">
