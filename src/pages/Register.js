@@ -198,7 +198,7 @@ function Register() {
                       <thead>
                         <tr>
                           <th>Select</th>
-                          <th>Course ID</th>
+                          <th>CRN</th>
                           <th>Course Name</th>
                           <th>Credits</th>
                           <th>Available Seats</th>
@@ -246,7 +246,7 @@ function Register() {
                       <thead>
                         <tr>
                           <th>Select</th> {/* Checkbox column header */}
-                          <th>Course ID</th>
+                          <th>CRN</th>
                           <th>Course Name</th>
                           <th>Credits</th>
                           <th>Waitlist Position</th>
@@ -295,7 +295,7 @@ function Register() {
                     <thead>
                       <tr>
                         <th>Select</th>
-                        <th>Course ID</th>
+                        <th>CRN</th>
                         <th>Course Name</th>
                         <th>Credits</th>
                         <th>Status</th>
@@ -348,7 +348,7 @@ function Register() {
                       <table className="degreeworks-table">
                         <thead>
                           <tr>
-                            <th>Course ID</th>
+                            <th>CRN</th>
                             <th>Course Name</th>
                             <th>Credits</th>
                             <th>Grade</th>
@@ -381,7 +381,7 @@ function Register() {
                     <table className="degreeworks-table">
                       <thead>
                         <tr>
-                          <th>Course ID</th>
+                          <th>CRN</th>
                           <th>Course Name</th>
                           <th>Credits</th>
                           <th>Grade</th>
